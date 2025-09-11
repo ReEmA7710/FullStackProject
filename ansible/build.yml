@@ -1,8 +1,20 @@
-- name: Build Docker Images
-  hosts: local
+---
+- name: Build Docker Image
+  hosts: localhost
+  connection: local
   tasks:
-    - name: Build backend image
-      shell: docker build -t {{ backend_image }} ./backend
-
-    - name: Build frontend image
-      shell: docker build -t {{ frontend_image }} ./frontend
+    - name: Build Docker image
+      community.docker.docker_image:
+        name: "{{ backend_image }}"
+        build:
+          path: "{{ build_context }}"
+        source: build
+        state: present
+        
+    - name: Build Docker image
+      community.docker.docker_image:
+        name: "{{ frontend_image }}"
+        build:
+          path: "{{ build_context }}"
+        source: build
+        state: present
