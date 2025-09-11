@@ -4,7 +4,7 @@
 
     - name: Copy mysql manifest to target server
       copy:
-        src: "{{ repo_root }}/k8s/mysql-deployment.yaml"
+        src: "{{ playbook_dir }}/../k8s/mysql-deployment.yaml"
         dest: /home/ubuntu/mysql-deployment.yaml
         owner: ubuntu
         group: ubuntu
@@ -12,7 +12,7 @@
 
     - name: Copy frontend manifest to target server
       copy:
-        src: "{{ repo_root }}/k8s/frontend-deployment.yaml"
+        src: "{{ playbook_dir }}/../k8s/frontend-deployment.yaml"
         dest: /home/ubuntu/frontend-deployment.yaml
         owner: ubuntu
         group: ubuntu
@@ -20,7 +20,7 @@
 
     - name: Copy backend manifest to target server
       copy:
-        src: "{{ repo_root }}/k8s/backend-deployment.yaml"
+        src: "{{ playbook_dir }}/../k8s/backend-deployment.yaml"
         dest: /home/ubuntu/backend-deployment.yaml
         owner: ubuntu
         group: ubuntu
