@@ -2,19 +2,21 @@
 - name: Build Docker Image
   hosts: localhost
   connection: local
+  vars:
+    workspace: "{{ lookup('env','WORKSPACE') | default(playbook_dir ~ '/..', true) }}"
   tasks:
     - name: Build Docker image
       community.docker.docker_image:
         name: "{{ backend_image }}"
-        build:
-          path: var/lib/jenkins/workspace/FullStackProject/backend
         source: build
-        state: present
+        build:
+          path: "{{ workspace }}/backend"
+        pull: yes
         
     - name: Build Docker image
       community.docker.docker_image:
         name: "{{ frontend_image }}"
-        build:
-          path: var/lib/jenkins/workspace/FullStackProject/forntend
         source: build
-        state: present
+        build:
+          path: "{{ workspace }}/forntend"
+        pull: yes
