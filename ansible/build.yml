@@ -1,0 +1,8 @@
+- name: Build Docker Images
+  hosts: local
+  tasks:
+    - name: Build backend image
+      shell: docker build -t {{ backend_image }} ./backend
+
+    - name: Build frontend image
+      shell: docker build -t {{ frontend_image }} ./frontend
