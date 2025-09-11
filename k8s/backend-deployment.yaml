@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: {{ backend_image }}
+          image: "{{ backend_image }}"
           ports:
             - containerPort: 8080
           env:
@@ -36,6 +36,7 @@ spec:
     - port: 8080
       targetPort: 8080
   type: ClusterIP
+
 
 
 
