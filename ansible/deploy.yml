@@ -2,23 +2,23 @@
   hosts: k8s_server
   tasks:
 
-  - name: Copy mysql manifest to target server
+    - name: Copy mysql manifest to target server
       copy:
         src: "{{ repo_root }}/k8s/mysql-deployment.yaml"
         dest: /home/ubuntu/mysql-deployment.yaml
         owner: ubuntu
         group: ubuntu
         mode: '0644'
-        
-  - name: Copy mysql manifest to target server
+
+    - name: Copy frontend manifest to target server
       copy:
         src: "{{ repo_root }}/k8s/frontend-deployment.yaml"
         dest: /home/ubuntu/frontend-deployment.yaml
         owner: ubuntu
         group: ubuntu
-        mode: '0644'    
+        mode: '0644'
 
-  - name: Copy mysql manifest to target server
+    - name: Copy backend manifest to target server
       copy:
         src: "{{ repo_root }}/k8s/backend-deployment.yaml"
         dest: /home/ubuntu/backend-deployment.yaml
@@ -26,18 +26,16 @@
         group: ubuntu
         mode: '0644'
 
-
-        
     - name: Apply MySQL Deployment
       command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
-        
+
     - name: Apply Backend Deployment
       command: kubectl apply -f /home/ubuntu/backend-deployment.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
-        
+
     - name: Apply Frontend Deployment
       command: kubectl apply -f /home/ubuntu/frontend-deployment.yaml
       environment:
