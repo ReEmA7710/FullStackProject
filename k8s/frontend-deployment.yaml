@@ -29,6 +29,7 @@ spec:
   selector:
     app: frontend
   ports:
-    - port: 80
-      targetPort: 80
+    - port: 80         # البورت داخل الكلاستر
+      targetPort: 80   # البورت داخل الكونتينر
+      nodePort: 30080  # البورت الخارجي (تفتحه من المتصفح)
   type: NodePort
