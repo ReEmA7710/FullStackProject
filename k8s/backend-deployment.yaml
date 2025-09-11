@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: reemaalsubaie24/backend:latest
+          image: reemaalsubaie24/frontend
           ports:
             - containerPort: 8080
           env:
@@ -36,4 +36,5 @@ spec:
     - port: 8080
       targetPort: 8080
   type: ClusterIP
+
 
