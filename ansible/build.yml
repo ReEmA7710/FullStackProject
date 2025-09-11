@@ -1,22 +1,21 @@
----
 - name: Build Docker Image
   hosts: localhost
   connection: local
   vars:
     workspace: "{{ lookup('env','WORKSPACE') | default(playbook_dir ~ '/..', true) }}"
   tasks:
-    - name: Build Docker image
+    - name: Build backend Docker image
       community.docker.docker_image:
         name: "{{ backend_image }}"
         source: build
         build:
           path: "{{ workspace }}/backend"
-        pull: yes
+        pull: true
         
-    - name: Build Docker image
+    - name: Build frontend Docker image
       community.docker.docker_image:
         name: "{{ frontend_image }}"
         source: build
         build:
-          path: "{{ workspace }}/forntend"
-        pull: yes
+          path: "{{ workspace }}/frontend"
+        pull: true
