@@ -1,0 +1,11 @@
+- name: Push Docker Images to Docker Hub
+  hosts: local
+  tasks:
+    - name: Login to Docker Hub
+      shell: echo "{{ docker_password }}" | docker login -u "{{ docker_username }}" --password-stdin
+
+    - name: Push backend image
+      shell: docker push {{ backend_image }}
+
+    - name: Push frontend image
+      shell: docker push {{ frontend_image }}
