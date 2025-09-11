@@ -10,7 +10,7 @@
         source: build
         build:
           path: "{{ workspace }}/backend"
-        pull: true
+          pull: true
         
     - name: Build frontend Docker image
       community.docker.docker_image:
@@ -18,4 +18,4 @@
         source: build
         build:
           path: "{{ workspace }}/frontend"
-        pull: true
+          pull: true
