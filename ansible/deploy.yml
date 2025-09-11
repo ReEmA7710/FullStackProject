@@ -28,15 +28,9 @@
 
     - name: Apply MySQL Deployment
       command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
 
     - name: Apply Backend Deployment
       command: kubectl apply -f /home/ubuntu/backend-deployment.yaml
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
 
     - name: Apply Frontend Deployment
       command: kubectl apply -f /home/ubuntu/frontend-deployment.yaml
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
