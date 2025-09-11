@@ -15,16 +15,17 @@ pipeline {
                     usernameVariable: 'DOCKER_USERNAME',
                     passwordVariable: 'DOCKER_PASSWORD'
                 )]) {
-                    sh """
+                    // استخدم ''' بدل """ لتفادي تحذير secrets
+                    sh '''
                         ansible-playbook -i ansible/inventory.ini ansible/build.yml \
                           -e backend_image=${BACKEND_IMAGE} \
                           -e frontend_image=${FRONTEND_IMAGE} \
                           -e docker_username=${DOCKER_USERNAME} \
                           -e docker_password=${DOCKER_PASSWORD}
-                    """
-                    echo "✅ Backend image: ${BACKEND_IMAGE}"
-                    echo "✅ Frontend image: ${FRONTEND_IMAGE}"
+                    '''
                 }
+                echo "✅ Backend image: ${BACKEND_IMAGE}"
+                echo "✅ Frontend image: ${FRONTEND_IMAGE}"
             }
         }
 
@@ -35,24 +36,24 @@ pipeline {
                     usernameVariable: 'DOCKER_USERNAME',
                     passwordVariable: 'DOCKER_PASSWORD'
                 )]) {
-                    sh """
+                    sh '''
                         ansible-playbook -i ansible/inventory.ini ansible/push.yml \
                           -e backend_image=${BACKEND_IMAGE} \
                           -e frontend_image=${FRONTEND_IMAGE} \
                           -e docker_username=${DOCKER_USERNAME} \
                           -e docker_password=${DOCKER_PASSWORD}
-                    """
+                    '''
                 }
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh """
+                sh '''
                     ansible-playbook -i ansible/inventory.ini ansible/deploy.yml \
                       -e backend_image=${BACKEND_IMAGE} \
                       -e frontend_image=${FRONTEND_IMAGE}
-                """
+                '''
             }
         }
     }
