@@ -1,0 +1,19 @@
+- name: Build and Push Docker Images
+  hosts: local
+  vars_files:
+    - group_vars/all.yml
+  tasks:
+    - name: Build backend image
+      shell: docker build -t {{ dockerhub_user }}/backend:latest ./backend
+
+    - name: Build frontend image
+      shell: docker build -t {{ dockerhub_user }}/frontend:latest ./frontend
+
+    - name: Login to Docker Hub
+      shell: echo "{{ dockerhub_password }}" | docker login -u {{ dockerhub_user }} --password-stdin
+
+    - name: Push backend image
+      shell: docker push {{ dockerhub_user }}/backend:latest
+
+    - name: Push frontend image
+      shell: docker push {{ dockerhub_user }}/frontend:latest
