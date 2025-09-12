@@ -1,3 +1,10 @@
+- name: Deploy to Kubernetes
+  hosts: k8s_server
+  tasks:
+
+    - name: Apply MySQL Deployment
+      command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml
+
     - name: Render backend deployment from template
       template:
         src: backend-deployment.yaml.j2
@@ -16,3 +23,6 @@
         owner: ubuntu
         group: ubuntu
         mode: '0644'
+
+    - name: Apply Frontend Deployment
+      command: kubectl apply -f /home/ubuntu/frontend-deployment.yaml
