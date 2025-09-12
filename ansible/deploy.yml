@@ -26,6 +26,20 @@
         group: ubuntu
         mode: '0644'
 
+    # ---- حذف القديم ----
+    - name: Delete old backend deployment
+      command: kubectl delete deployment backend-deployment --ignore-not-found
+
+    - name: Delete old frontend deployment
+      command: kubectl delete deployment frontend-deployment --ignore-not-found
+
+    - name: Delete old backend service
+      command: kubectl delete service backend-service --ignore-not-found
+
+    - name: Delete old frontend service
+      command: kubectl delete service frontend-service --ignore-not-found
+
+    # ---- Apply جديد ----
     - name: Apply MySQL Deployment
       command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml
 
