@@ -1,51 +1,39 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-deployment
+  name: demo-backend
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      app: backend
+      app: demo-backend
   template:
     metadata:
       labels:
-        app: backend
+        app: demo-backend
     spec:
       containers:
-        - name: backend
-          image: reemaalsubaie24/backend:latest   # غيره باسم صورتك
-          imagePullPolicy: IfNotPresent
+        - name: demo-backend
+          image: "{{ backend_image }}"
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://mysql:3306/mydb
+              value: jdbc:mysql://mysql:3306/demo
             - name: SPRING_DATASOURCE_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-credentials
-                  key: username
+              value: root
             - name: SPRING_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-credentials
-                  key: password
-          readinessProbe:
-            httpGet:
-              path: /actuator/health
-              port: 8080
-            initialDelaySeconds: 15
-            periodSeconds: 10
+              value: root
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-service
+  name: demo-backend
 spec:
   selector:
-    app: backend
+    app: demo-backend
+  type: NodePort
   ports:
-    - port: 8080
-      targetPort: 8080
-  type: ClusterIP
+    - port: 8080        # بورت الخدمة داخل الكلاستر
+      targetPort: 8080  # بورت الحاوية
+      nodePort: 30080   # البورت الخارجي على النود (اختاره من رينج 30000-32767)
