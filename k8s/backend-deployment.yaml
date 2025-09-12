@@ -14,13 +14,13 @@ spec:
     spec:
       containers:
         - name: backend
-          image: "{{ backend_image }}"
+          image: reemaalsubaie24/backend:latest   # غيره باسم صورتك
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           env:
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:mysql://mysql:3306/mydb"
+              value: jdbc:mysql://mysql:3306/mydb
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -35,7 +35,7 @@ spec:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 10
+            initialDelaySeconds: 15
             periodSeconds: 10
 ---
 apiVersion: v1
