@@ -2,49 +2,27 @@
   hosts: k8s_server
   tasks:
 
-    - name: Copy mysql manifest to target server
-      copy:
-        src: "{{ playbook_dir }}/../k8s/mysql-deployment.yaml"
-        dest: /home/ubuntu/mysql-deployment.yaml
-        owner: ubuntu
-        group: ubuntu
-        mode: '0644'
+    - name: Apply MySQL Deployment
+      command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml
 
-    - name: Copy frontend manifest to target server
-      copy:
-        src: "{{ playbook_dir }}/../k8s/frontend-deployment.yaml"
-        dest: /home/ubuntu/frontend-deployment.yaml
-        owner: ubuntu
-        group: ubuntu
-        mode: '0644'
-
-    - name: Copy backend manifest to target server
-      copy:
-        src: "{{ playbook_dir }}/../k8s/backend-deployment.yaml"
+    - name: Render backend deployment from template
+      template:
+        src: templates/backend-deployment.yaml.j2
         dest: /home/ubuntu/backend-deployment.yaml
         owner: ubuntu
         group: ubuntu
         mode: '0644'
 
-    # ---- حذف القديم ----
-    - name: Delete old backend deployment
-      command: kubectl delete deployment backend-deployment --ignore-not-found
-
-    - name: Delete old frontend deployment
-      command: kubectl delete deployment frontend-deployment --ignore-not-found
-
-    - name: Delete old backend service
-      command: kubectl delete service backend-service --ignore-not-found
-
-    - name: Delete old frontend service
-      command: kubectl delete service frontend-service --ignore-not-found
-
-    # ---- Apply جديد ----
-    - name: Apply MySQL Deployment
-      command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml
-
     - name: Apply Backend Deployment
       command: kubectl apply -f /home/ubuntu/backend-deployment.yaml
+
+    - name: Render frontend deployment from template
+      template:
+        src: templates/frontend-deployment.yaml.j2
+        dest: /home/ubuntu/frontend-deployment.yaml
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
 
     - name: Apply Frontend Deployment
       command: kubectl apply -f /home/ubuntu/frontend-deployment.yaml
