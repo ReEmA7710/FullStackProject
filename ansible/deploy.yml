@@ -1,28 +1,56 @@
-- name: Deploy to Kubernetes
+- name: Deploy app on Kubernetes
   hosts: k8s_server
+  become: true
+
+  vars:
+    backend_image: "{{ backend_image }}"
+    frontend_image: "{{ frontend_image }}"
+    kubeconfig_path: "/home/ubuntu/.kube/config"
+    repo_root: "{{ playbook_dir | dirname }}"
+
   tasks:
+    # MySQL
+    - name: Apply MySQL
+      command: kubectl apply -f {{ repo_root }}/k8s/mysql-deployment.yaml
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Apply MySQL Deployment
-      command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml
-
-    - name: Render backend deployment from template
+    # Backend
+    - name: Render backend deployment
       template:
-        src: backend-deployment.yaml.j2
+        src: "{{ repo_root }}/k8s/backend-deployment.yaml.j2"
         dest: /home/ubuntu/backend-deployment.yaml
         owner: ubuntu
         group: ubuntu
         mode: '0644'
 
-    - name: Apply Backend Deployment
-      command: kubectl apply -f /home/ubuntu/backend-deployment.yaml
+    - name: Delete old backend deployment if exists
+      command: kubectl delete deployment demo-backend
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      failed_when: false
 
-    - name: Render frontend deployment from template
+    - name: Apply backend deployment
+      command: kubectl apply -f /home/ubuntu/backend-deployment.yaml
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+
+    # Frontend
+    - name: Render frontend deployment
       template:
-        src: frontend-deployment.yaml.j2
+        src: "{{ repo_root }}/k8s/frontend-deployment.yaml.j2"
         dest: /home/ubuntu/frontend-deployment.yaml
         owner: ubuntu
         group: ubuntu
         mode: '0644'
 
-    - name: Apply Frontend Deployment
+    - name: Delete old frontend deployment if exists
+      command: kubectl delete deployment demo-frontend
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      failed_when: false
+
+    - name: Apply frontend deployment
       command: kubectl apply -f /home/ubuntu/frontend-deployment.yaml
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
