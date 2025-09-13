@@ -1,40 +1,35 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: demo-backend
+  name: backend
+  namespace: {{ k8s_namespace }}
 spec:
+  replicas: 1
   selector:
-    matchLabels:
-      app: demo-backend
+    matchLabels: { app: backend }
   template:
     metadata:
-      labels:
-        app: demo-backend
+      labels: { app: backend }
     spec:
       containers:
-        - name: demo-backend
-          image: "{{ backend_image }}"
-          imagePullPolicy: Always
+        - name: backend
+          image: {{ registry }}/{{ app_name }}-backend:{{ build_tag }}
           ports:
             - containerPort: 8080
           env:
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://mysql:3306/demo
+              valueFrom: { configMapKeyRef: { name: app-config, key: SPRING_DATASOURCE_URL } }
             - name: SPRING_DATASOURCE_USERNAME
-              value: root
+              valueFrom: { configMapKeyRef: { name: app-config, key: SPRING_DATASOURCE_USERNAME } }
             - name: SPRING_DATASOURCE_PASSWORD
-              value: root
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: demo-backend
-spec:
-  selector:
-    app: demo-backend
-  type: NodePort
-  ports:
-    - port: 8080
-      targetPort: 8080
-      nodePort: 30080
-
+              valueFrom: { secretKeyRef: { name: mysql-secret, key: mysql-password } }
+            - name: JAVA_OPTS
+              value: "-Xms256m -Xmx512m"
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8080 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8080 }
+            initialDelaySeconds: 40
+            periodSeconds: 20
