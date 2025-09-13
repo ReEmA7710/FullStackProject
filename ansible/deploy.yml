@@ -2,16 +2,22 @@
   hosts: kubernetes_master
   become: true
 
-vars:
-  build_number: "{{ lookup('env','BUILD_NUMBER') | default('dev', true) }}"
-  backend_image: "docker.io/reemaalsubaie24/backend:{{ build_number }}"
-  frontend_image: "docker.io/reemaalsubaie24/frontend:{{ build_number }}"
-  kubeconfig_path: "/home/ubuntu/.kube/config"
-  repo_root: "{{ playbook_dir | dirname }}"
-
+  vars:
+    build_number: "{{ lookup('env','BUILD_NUMBER') | default('dev', true) }}"
+    backend_image: "{{ backend_image | default('docker.io/reemaalsubaie24/backend:latest') }}"
+    frontend_image: "{{ frontend_image | default('docker.io/reemaalsubaie24/frontend:latest') }}"
+    kubeconfig_path: "/home/ubuntu/.kube/config"
+    repo_root: "{{ playbook_dir | dirname }}"  # جذر المشروع (فيه مجلد k8s)
 
   tasks:
-    # ===== نسخ mysql (ثابت ما فيه متغيرات)
+    # ===== Debug Variables =====
+    - name: Show rendered images
+      debug:
+        msg:
+          - "Backend => {{ backend_image }}"
+          - "Frontend => {{ frontend_image }}"
+
+    # ===== MySQL =====
     - name: Copy mysql manifest to target server
       copy:
         src: "{{ repo_root }}/k8s/mysql-deployment.yaml"
@@ -20,36 +26,20 @@ vars:
         group: ubuntu
         mode: '0644'
 
-    # ===== رندر ملفات backend/frontend (من .yaml مباشرة باستخدام template)
-    - name: Render backend manifest with injected image
-      template:
-        src: "{{ repo_root }}/k8s/backend-deployment.yaml"
-        dest: /home/ubuntu/backend-deployment.yaml
-        owner: ubuntu
-        group: ubuntu
-        mode: '0644'
-
-    - name: Render frontend manifest with injected image
-      template:
-        src: "{{ repo_root }}/k8s/frontend-deployment.yaml"
-        dest: /home/ubuntu/frontend-deployment.yaml
-        owner: ubuntu
-        group: ubuntu
-        mode: '0644'
-
-    - name: Show rendered images (debug)
-      debug:
-        msg:
-          - "backend => {{ backend_image }}"
-          - "frontend => {{ frontend_image }}"
-
-    # ===== MySQL
     - name: Apply mysql
       command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    # ===== Backend
+    # ===== Backend =====
+    - name: Render backend manifest with injected image
+      template:
+        src: "{{ repo_root }}/k8s/backend-deployment.yaml.j2"
+        dest: /home/ubuntu/backend-deployment.yaml
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
     - name: Check if deployment exists (backend)
       command: kubectl get deployment demo-backend
       register: be_check
@@ -69,7 +59,15 @@ vars:
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    # ===== Frontend
+    # ===== Frontend =====
+    - name: Render frontend manifest with injected image
+      template:
+        src: "{{ repo_root }}/k8s/frontend-deployment.yaml.j2"
+        dest: /home/ubuntu/frontend-deployment.yaml
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
     - name: Check if deployment exists (frontend)
       command: kubectl get deployment demo-frontend
       register: fe_check
