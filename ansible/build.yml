@@ -2,17 +2,13 @@
   hosts: localhost
   connection: local
 
-  vars:
-    backend_image: "{{ backend_image }}"
-    frontend_image: "{{ frontend_image }}"
-
   tasks:
     - name: Build backend image
-      command: docker build -t {{ backend_image }} -f ./Dockerfile ./backend
+      command: docker build -t {{ backend_image }} -f backend/Dockerfile ./backend
       args:
         chdir: "{{ playbook_dir }}/.."
 
     - name: Build frontend image
-      command: docker build -t {{ frontend_image }} -f ./Dockerfile ./frontend
+      command: docker build -t {{ frontend_image }} -f frontend/Dockerfile ./frontend
       args:
         chdir: "{{ playbook_dir }}/.."
