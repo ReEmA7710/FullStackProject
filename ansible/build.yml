@@ -1,28 +1,44 @@
 ---
-- hosts: localhost
+- name: Deploy to Kubernetes
+  hosts: localhost
   connection: local
 
   vars:
     build_number: "{{ lookup('env','BUILD_NUMBER') | default('dev', true) }}"
-    workspace: "{{ lookup('env','WORKSPACE') | default(playbook_dir ~ '/..', true) }}"
     backend_image: "reemaalsubaie24/backend:{{ build_number }}"
     frontend_image: "reemaalsubaie24/frontend:{{ build_number }}"
 
   tasks:
-    - name: Build backend Docker image
-      community.docker.docker_image:
-        name: "{{ backend_image }}"
-        source: build
-        build:
-          path: "{{ workspace }}/backend"
-          dockerfile: "{{ workspace }}/backend/Dockerfile"
-          pull: yes
+    - name: Update backend image in deployment
+      kubernetes.core.k8s:
+        state: present
+        kind: Deployment
+        namespace: default
+        name: demo-backend
+        definition:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: backend
+                    image: "{{ backend_image }}"
 
-    - name: Build frontend Docker image
-      community.docker.docker_image:
-        name: "{{ frontend_image }}"
-        source: build
-        build:
-          path: "{{ workspace }}/frontend"
-          dockerfile: "{{ workspace }}/frontend/Dockerfile"
-          pull: yes
+    - name: Update frontend image in deployment
+      kubernetes.core.k8s:
+        state: present
+        kind: Deployment
+        namespace: default
+        name: demo-frontend
+        definition:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: frontend
+                    image: "{{ frontend_image }}"
+
+    - name: Force rollout restart (backend)
+      command: kubectl rollout restart deployment/demo-backend
+
+    - name: Force rollout restart (frontend)
+      command: kubectl rollout restart deployment/demo-frontend
