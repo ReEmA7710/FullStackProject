@@ -1,5 +1,5 @@
 ---
-- name: Deploy to Kubernetes
+- name: Push Docker Images
   hosts: localhost
   connection: local
 
@@ -9,36 +9,19 @@
     frontend_image: "reemaalsubaie24/frontend:{{ build_number }}"
 
   tasks:
-    - name: Update backend image in deployment
-      kubernetes.core.k8s:
-        state: present
-        kind: Deployment
-        namespace: default
-        name: demo-backend
-        definition:
-          spec:
-            template:
-              spec:
-                containers:
-                  - name: backend
-                    image: "{{ backend_image }}"
+    - name: Log in to Docker Hub
+      community.docker.docker_login:
+        username: "{{ lookup('env', 'DOCKER_USERNAME') }}"
+        password: "{{ lookup('env', 'DOCKER_PASSWORD') }}"
 
-    - name: Update frontend image in deployment
-      kubernetes.core.k8s:
-        state: present
-        kind: Deployment
-        namespace: default
-        name: demo-frontend
-        definition:
-          spec:
-            template:
-              spec:
-                containers:
-                  - name: frontend
-                    image: "{{ frontend_image }}"
+    - name: Push backend Docker image
+      community.docker.docker_image:
+        name: "{{ backend_image }}"
+        push: yes
+        source: local
 
-    - name: Force rollout restart (backend)
-      command: kubectl rollout restart deployment/demo-backend
-
-    - name: Force rollout restart (frontend)
-      command: kubectl rollout restart deployment/demo-frontend
+    - name: Push frontend Docker image
+      community.docker.docker_image:
+        name: "{{ frontend_image }}"
+        push: yes
+        source: local
