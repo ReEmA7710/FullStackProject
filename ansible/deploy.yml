@@ -1,5 +1,5 @@
 ---
-- name: Deploy compare-app on Kubernetes
+- name: Deploy full-stack on Kubernetes
   hosts: kubernetes_master
   become: true
 
@@ -8,85 +8,49 @@
     backend_image: "docker.io/reemaalsubaie24/backend:{{ build_number }}"
     frontend_image: "docker.io/reemaalsubaie24/frontend:{{ build_number }}"
     kubeconfig_path: "/home/ubuntu/.kube/config"
-    repo_root: "{{ playbook_dir | dirname }}"  # يشير إلى جذر المشروع (اللي فيه مجلد k8s)
+    repo_root: "{{ playbook_dir | dirname }}"
 
   tasks:
-    # ===== نسخ mysql (ثابت ما فيه متغيرات)
-    - name: Copy mysql manifest to target server
+    # ===== MySQL (ثابت)
+    - name: Copy & Apply mysql manifest
       copy:
         src: "{{ repo_root }}/k8s/mysql-deployment.yaml"
         dest: /home/ubuntu/mysql-deployment.yaml
         owner: ubuntu
         group: ubuntu
         mode: '0644'
-
-    # ===== رندر ملفات backend/frontend (من .yaml مباشرة باستخدام template)
-    - name: Render backend manifest with injected image
-      template:
-        src: "{{ repo_root }}/k8s/Backend-Deployment.yaml"
-        dest: /home/ubuntu/backend-deployment.yaml
-        owner: ubuntu
-        group: ubuntu
-        mode: '0644'
-
-    - name: Render frontend manifest with injected image
-      template:
-        src: "{{ repo_root }}/k8s/Frontend-Deployment.yaml"
-        dest: /home/ubuntu/frontend-deployment.yaml
-        owner: ubuntu
-        group: ubuntu
-        mode: '0644'
-
-    - name: Show rendered images (debug)
-      debug:
-        msg:
-          - "backend => {{ backend_image }}"
-          - "frontend => {{ frontend_image }}"
-
-    # ===== MySQL
+      register: mysql_copy
 
     - name: Apply mysql
       command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml
+      when: mysql_copy is changed
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    # ===== Backend
-    - name: Check if deployment exists (backend)
-      command: kubectl get deployment demo-backend
-      register: be_check
-      failed_when: false
-      changed_when: false
+    # ===== Backend + Frontend (Dynamic with loop)
+    - name: Render manifests with injected images
+      template:
+        src: "{{ repo_root }}/k8s/{{ item.src }}"
+        dest: "/home/ubuntu/{{ item.dest }}"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+      loop:
+        - { src: "Backend-Deployment.yaml", dest: "backend-deployment.yaml" }
+        - { src: "Frontend-Deployment.yaml", dest: "frontend-deployment.yaml" }
+
+    - name: Apply manifests (backend + frontend)
+      command: kubectl apply -f /home/ubuntu/{{ item }}
+      loop:
+        - backend-deployment.yaml
+        - frontend-deployment.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Delete existing deployment if found (backend)
-      command: kubectl delete deployment demo-backend
-      when: be_check.rc == 0
+    - name: Force rollout restart (backend & frontend)
+      command: kubectl rollout restart deployment/{{ item }}
+      loop:
+        - demo-backend
+        - demo-frontend
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
-
-    - name: Apply backend
-      command: kubectl apply -f /home/ubuntu/backend-deployment.yaml
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
-
-    # ===== Frontend
-    - name: Check if deployment exists (frontend)
-      command: kubectl get deployment demo-frontend
-      register: fe_check
-      failed_when: false
-      changed_when: false
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
-
-    - name: Delete existing deployment if found (frontend)
-      command: kubectl delete deployment demo-frontend
-      when: fe_check.rc == 0
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
-
-    - name: Apply frontend
-      command: kubectl apply -f /home/ubuntu/frontend-deployment.yaml
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
-
