@@ -1,6 +1,7 @@
 ---
 - hosts: localhost
   connection: local
+
   vars:
     build_number: "{{ lookup('env','BUILD_NUMBER') | default('dev', true) }}"
     workspace: "{{ lookup('env','WORKSPACE') | default(playbook_dir ~ '/..', true) }}"
@@ -13,7 +14,8 @@
         name: "{{ backend_image }}"
         source: build
         build:
-          path: "{{ workspace }}/demo"
+          path: "{{ workspace }}/backend"
+          dockerfile: "{{ workspace }}/backend/Dockerfile"
           pull: yes
 
     - name: Build frontend Docker image
@@ -22,4 +24,5 @@
         source: build
         build:
           path: "{{ workspace }}/frontend"
+          dockerfile: "{{ workspace }}/frontend/Dockerfile"
           pull: yes
