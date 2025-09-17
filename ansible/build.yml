@@ -1,14 +1,25 @@
-- name: Build Docker Images
-  hosts: localhost
+---
+- hosts: localhost
   connection: local
+  vars:
+    build_number: "{{ lookup('env','BUILD_NUMBER') | default('dev', true) }}"
+    workspace: "{{ lookup('env','WORKSPACE') | default(playbook_dir ~ '/..', true) }}"
+    backend_image: "reemaalsubaie24/backend:{{ build_number }}"
+    frontend_image: "reemaalsubaie24/frontend:{{ build_number }}"
 
   tasks:
-    - name: Build backend image
-      command: docker build -t {{ backend_image }} -f backend/Dockerfile ./backend
-      args:
-        chdir: "{{ playbook_dir }}/.."
+    - name: Build backend Docker image
+      community.docker.docker_image:
+        name: "{{ backend_image }}"
+        source: build
+        build:
+          path: "{{ workspace }}/demo"
+          pull: yes
 
-    - name: Build frontend image
-      command: docker build -t {{ frontend_image }} -f frontend/Dockerfile ./frontend
-      args:
-        chdir: "{{ playbook_dir }}/.."
+    - name: Build frontend Docker image
+      community.docker.docker_image:
+        name: "{{ frontend_image }}"
+        source: build
+        build:
+          path: "{{ workspace }}/frontend"
+          pull: yes
