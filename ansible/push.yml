@@ -25,3 +25,17 @@
         name: "{{ frontend_image }}"
         push: yes
         source: local
+
+    - name: Remove old backend images
+      community.docker.docker_prune:
+        images: yes
+        containers: no
+        networks: no
+        volumes: no
+
+    - name: Remove old frontend images
+      community.docker.docker_prune:
+        images: yes
+        containers: no
+        networks: no
+        volumes: no
