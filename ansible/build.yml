@@ -1,27 +1,28 @@
 ---
-- name: Push Docker Images
-  hosts: localhost
+- hosts: localhost
   connection: local
 
   vars:
     build_number: "{{ lookup('env','BUILD_NUMBER') | default('dev', true) }}"
+    workspace: "{{ lookup('env','WORKSPACE') | default(playbook_dir ~ '/..', true) }}"
     backend_image: "reemaalsubaie24/backend:{{ build_number }}"
     frontend_image: "reemaalsubaie24/frontend:{{ build_number }}"
 
   tasks:
-    - name: Log in to Docker Hub
-      community.docker.docker_login:
-        username: "{{ lookup('env', 'DOCKER_USERNAME') }}"
-        password: "{{ lookup('env', 'DOCKER_PASSWORD') }}"
-
-    - name: Push backend Docker image
+    - name: Build backend Docker image
       community.docker.docker_image:
         name: "{{ backend_image }}"
-        push: yes
-        source: local
+        source: build
+        build:
+          path: "{{ workspace }}/backend"
+          dockerfile: "{{ workspace }}/backend/Dockerfile"
+          pull: yes
 
-    - name: Push frontend Docker image
+    - name: Build frontend Docker image
       community.docker.docker_image:
         name: "{{ frontend_image }}"
-        push: yes
-        source: local
+        source: build
+        build:
+          path: "{{ workspace }}/frontend"
+          dockerfile: "{{ workspace }}/frontend/Dockerfile"
+          pull: yes
