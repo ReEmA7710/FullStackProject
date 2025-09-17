@@ -1,19 +1,27 @@
-- name: Push Docker Images
+---
+- name: Push Docker Image
   hosts: localhost
   connection: local
-
   vars:
-    backend_image: "{{ backend_image }}"
-    frontend_image: "{{ frontend_image }}"
-    docker_username: "{{ docker_username }}"
-    docker_password: "{{ docker_password }}"
+    backend_image: "reemaalsubaie24/backend:{{ lookup('env','BUILD_NUMBER') }}"
+    frontend_image: "reemaalsubaie24/frontend:{{ lookup('env','BUILD_NUMBER') }}"
 
   tasks:
     - name: Log in to Docker Hub
-      command: docker login -u {{ docker_username }} -p {{ docker_password }}
+      community.docker.docker_login:
+        username: "{{ lookup('env', 'DOCKER_USERNAME') }}"
+        password: "{{ lookup('env', 'DOCKER_PASSWORD') }}"
 
-    - name: Push backend image
-      command: docker push {{ backend_image }}
+    - name: Push backend Docker image
+      community.docker.docker_image:
+        name: "{{ backend_image }}"
+        source: local
+        push: yes
+        state: present
 
-    - name: Push frontend image
-      command: docker push {{ frontend_image }}
+    - name: Push frontend Docker image
+      community.docker.docker_image:
+        name: "{{ frontend_image }}"
+        source: local
+        push: yes
+        state: present
