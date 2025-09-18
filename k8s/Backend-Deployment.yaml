@@ -13,19 +13,6 @@ spec:
       labels:
         app: backend
     spec:
-      initContainers:
-        - name: wait-for-mysql
-          image: busybox
-          command:
-            - sh
-            - -c
-            - |
-              echo "Waiting for MySQL..."
-              until nc -z mysql 3306; do
-                echo "MySQL not ready yet..."
-                sleep 3
-              done
-              echo "MySQL is up!"
       containers:
         - name: backend
           image: "{{ backend_image }}"
