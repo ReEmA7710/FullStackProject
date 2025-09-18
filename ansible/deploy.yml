@@ -89,7 +89,7 @@
         KUBECONFIG: "{{ kubeconfig_path }}"
 
     - name: Apply backend
-      command: kubectl apply -f /home/ubuntu/backend-deployment.yaml
+      command: kubectl apply -f /home/ubuntu/Backend-Deployment.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
@@ -109,7 +109,7 @@
         KUBECONFIG: "{{ kubeconfig_path }}"
 
     - name: Apply frontend
-      command: kubectl apply -f /home/ubuntu/frontend-deployment.yaml
+      command: kubectl apply -f /home/ubuntu/Frontend-Deployment.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
