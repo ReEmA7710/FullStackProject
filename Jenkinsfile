@@ -11,22 +11,18 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'docker',
-                    usernameVariable: 'DOCKER_USERNAME',
-                    passwordVariable: 'DOCKER_PASSWORD'
-                )]) {
-                    sh """
-                        ansible-playbook -i ansible/inventory.ini ansible/build.yml \
-                          -e backend_image=${BACKEND_IMAGE} \
-                          -e frontend_image=${FRONTEND_IMAGE}
-                    """
-                }
+                echo "🔨 Building Docker images..."
+                sh """
+                    ansible-playbook -i ansible/inventory.ini ansible/build.yml \
+                      -e backend_image=${BACKEND_IMAGE} \
+                      -e frontend_image=${FRONTEND_IMAGE}
+                """
             }
         }
 
-        stage('Docker Push using Ansible') {
+        stage('Docker Push') {
             steps {
+                echo "📦 Pushing images to Docker Hub..."
                 withCredentials([usernamePassword(
                     credentialsId: 'docker',
                     usernameVariable: 'DOCKER_USERNAME',
@@ -45,12 +41,22 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
+                echo "🚀 Deploying to Kubernetes..."
                 sh """
                     ansible-playbook -i ansible/inventory.ini ansible/deploy.yml \
                       -e backend_image=${BACKEND_IMAGE} \
                       -e frontend_image=${FRONTEND_IMAGE}
                 """
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Pipeline finished successfully!"
+        }
+        failure {
+            echo "❌ Pipeline failed, please check logs."
         }
     }
 }
