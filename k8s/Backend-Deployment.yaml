@@ -13,28 +13,20 @@ spec:
       labels:
         app: backend
     spec:
+      initContainers:
+      - name: wait-for-mysql
+        image: busybox
+        command: ['sh', '-c', 'until nc -z mysql 3306; do echo waiting for mysql; sleep 2; done;']
       containers:
-        - name: backend
-          image: "{{ backend_image }}"
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8080
-          env:
-            - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://mysql:3306/mydb?useSSL=false&serverTimezone=UTC
-            - name: SPRING_DATASOURCE_USERNAME
-              value: root
-            - name: SPRING_DATASOURCE_PASSWORD
-              value: root
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend
-  namespace: fullstack
-spec:
-  selector:
-    app: backend
-  ports:
-    - port: 8080
-      targetPort: 8080
+      - name: backend
+        image: "{{ backend_image }}"
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 8080
+        env:
+          - name: SPRING_DATASOURCE_URL
+            value: jdbc:mysql://mysql:3306/mydb?useSSL=false&serverTimezone=UTC
+          - name: SPRING_DATASOURCE_USERNAME
+            value: root
+          - name: SPRING_DATASOURCE_PASSWORD
+            value: root
