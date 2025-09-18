@@ -1,32 +1,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend-deployment
+  name: frontend
+  namespace: fullstack
 spec:
+  replicas: 1
   selector:
     matchLabels:
-      app: frontend-app
+      app: frontend
   template:
     metadata:
       labels:
-        app: frontend-app
+        app: frontend
     spec:
       containers:
-        - name: demo-frontend
+        - name: frontend
           image: "{{ frontend_image }}"
-          imagePullPolicy: Always        # مهم لو بقيت تستخدم latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend-service
+  name: frontend
+  namespace: fullstack
 spec:
   selector:
-    app: frontend-app
-  type: NodePort
+    app: frontend
   ports:
     - port: 80
       targetPort: 80
-      nodePort: 30081
