@@ -1,5 +1,5 @@
 ---
-- name: Deploy compare-app on Kubernetes
+- name: Deploy full-stack on Kubernetes
   hosts: k8s_server
   become: true
 
