@@ -4,8 +4,7 @@ metadata:
   name: mysql-pvc
   namespace: fullstack
 spec:
-  accessModes:
-    - ReadWriteOnce
+  accessModes: ["ReadWriteOnce"]
   resources:
     requests:
       storage: 1Gi
