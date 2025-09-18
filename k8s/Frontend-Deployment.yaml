@@ -33,4 +33,4 @@ spec:
     - name: http
       port: 80
       targetPort: 80
-      nodePort: 30080   # منفذ على النود
+      nodePort: 30087   # منفذ على النود
