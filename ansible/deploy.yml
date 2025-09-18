@@ -1,6 +1,6 @@
 ---
-- name: Deploy full-stack on Kubernetes
-  hosts: k8s_server
+- name: Deploy compare-app on Kubernetes
+  hosts: kubernetes_master
   become: true
 
   vars:
@@ -8,11 +8,25 @@
     backend_image: "docker.io/reemaalsubaie24/backend:{{ build_number }}"
     frontend_image: "docker.io/reemaalsubaie24/frontend:{{ build_number }}"
     kubeconfig_path: "/home/ubuntu/.kube/config"
-    repo_root: "{{ playbook_dir | dirname }}"  # يشير لجذر المشروع
+    repo_root: "{{ playbook_dir | dirname }}"  # يشير إلى جذر المشروع (اللي فيه مجلد k8s)
 
   tasks:
-    # ===== نسخ ملفات k8s =====
-    - name: Copy mysql manifest
+    - name: Copy namespace manifest to target server
+      copy:
+        src: "{{ repo_root }}/k8s/namespace.yaml"
+        dest: /home/ubuntu/namespace.yaml
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+    - name: Copy pvc manifest to target server
+      copy:
+        src: "{{ repo_root }}/k8s/mysql_Pvc.yaml"
+        dest: /home/ubuntu/mysql_Pvc.yaml
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+    # ===== نسخ mysql (ثابت ما فيه متغيرات)
+    - name: Copy mysql manifest to target server
       copy:
         src: "{{ repo_root }}/k8s/mysql-deployment.yaml"
         dest: /home/ubuntu/mysql-deployment.yaml
@@ -20,10 +34,11 @@
         group: ubuntu
         mode: '0644'
 
+    # ===== رندر ملفات backend/frontend (من .yaml مباشرة باستخدام template)
     - name: Render backend manifest with injected image
       template:
         src: "{{ repo_root }}/k8s/Backend-Deployment.yaml"
-        dest: /home/ubuntu/backend-deployment.yaml
+        dest: /home/ubuntu/Backend-Deployment.yaml
         owner: ubuntu
         group: ubuntu
         mode: '0644'
@@ -31,25 +46,35 @@
     - name: Render frontend manifest with injected image
       template:
         src: "{{ repo_root }}/k8s/Frontend-Deployment.yaml"
-        dest: /home/ubuntu/frontend-deployment.yaml
+        dest: /home/ubuntu/Frontend-Deployment.yaml
         owner: ubuntu
         group: ubuntu
         mode: '0644'
 
-    - name: Debug images
+    - name: Show rendered images (debug)
       debug:
         msg:
           - "backend => {{ backend_image }}"
           - "frontend => {{ frontend_image }}"
 
-    # ===== MySQL =====
+    # ===== MySQL
+    - name: Apply namespace
+      command: kubectl apply -f /home/ubuntu/namespace.yaml
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+        
+    - name: Apply pvc
+      command: kubectl apply -f /home/ubuntu/mysql_Pvc.yaml
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+        
     - name: Apply mysql
       command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    # ===== Backend =====
-    - name: Check if backend deployment exists
+    # ===== Backend
+    - name: Check if deployment exists (backend)
       command: kubectl get deployment backend-deployment
       register: be_check
       failed_when: false
@@ -57,19 +82,19 @@
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Delete old backend deployment
-      command: kubectl delete deployment backend-deployment
+    - name: Delete existing deployment if found (backend)
+      command: kubectl delete backend-deployment
       when: be_check.rc == 0
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Apply backend deployment
-      command: kubectl apply -f /home/ubuntu/backend-deployment.yaml
+    - name: Apply backend
+      command: kubectl apply -f /home/ubuntu/Backend-Deployment.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    # ===== Frontend =====
-    - name: Check if frontend deployment exists
+    # ===== Frontend
+    - name: Check if deployment exists (frontend)
       command: kubectl get deployment frontend-deployment
       register: fe_check
       failed_when: false
@@ -77,13 +102,15 @@
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Delete old frontend deployment
+    - name: Delete existing deployment if found (frontend)
       command: kubectl delete deployment frontend-deployment
       when: fe_check.rc == 0
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Apply frontend deployment
-      command: kubectl apply -f /home/ubuntu/frontend-deployment.yaml
+    - name: Apply frontend
+      command: kubectl apply -f /home/ubuntu/Frontend-Deployment.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
+
+     
