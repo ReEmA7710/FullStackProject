@@ -9,6 +9,8 @@
     frontend_image: "docker.io/reemaalsubaie24/frontend:{{ build_number }}"
     kubeconfig_path: "/home/ubuntu/.kube/config"
     repo_root: "{{ playbook_dir | dirname }}"
+    backend_deploy_name: "backend-deployment"
+    frontend_deploy_name: "frontend-deployment"
 
   tasks:
     # ===== MySQL (ثابت)
@@ -50,7 +52,7 @@
     - name: Force rollout restart (backend & frontend)
       command: kubectl rollout restart deployment/{{ item }}
       loop:
-        - demo-backend
-        - demo-frontend
+        - "{{ backend_deploy_name }}"
+        - "{{ frontend_deploy_name }}"
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
