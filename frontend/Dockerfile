@@ -1,9 +1,5 @@
-FROM node:20
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build --prod
-RUN npm install -g serve
-EXPOSE 80
-CMD ["serve","-s","dist/frontend","-l","80"]
+FROM openjdk:11.0.11-jre-slim
+EXPOSE 8080
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar","app.jar"]
