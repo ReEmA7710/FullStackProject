@@ -26,10 +26,8 @@ metadata:
   name: frontend
   namespace: fullstack
 spec:
-  type: NodePort   # << خلي الخدمة NodePort
   selector:
     app: frontend
   ports:
     - port: 80
       targetPort: 80
-      # لا تحددي nodePort هنا، كوبرنيتس يختاره تلقائي
