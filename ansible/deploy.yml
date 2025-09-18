@@ -13,19 +13,9 @@
     frontend_deploy_name: "frontend-deployment"
 
   tasks:
-    # ===== MySQL (ثابت)
-    - name: Copy & Apply mysql manifest
-      copy:
-        src: "{{ repo_root }}/k8s/mysql-deployment.yaml"
-        dest: /home/ubuntu/mysql-deployment.yaml
-        owner: ubuntu
-        group: ubuntu
-        mode: '0644'
-      register: mysql_copy
-
-    - name: Apply mysql
-      command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml
-      when: mysql_copy is changed
+    # ===== MySQL (Apply دائمًا)
+    - name: Apply MySQL manifest
+      command: kubectl apply -f {{ repo_root }}/k8s/mysql-deployment.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
