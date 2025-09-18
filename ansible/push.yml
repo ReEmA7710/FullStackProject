@@ -3,8 +3,8 @@
   hosts: localhost
   connection: local
   vars:
-    backend_image: "reemaalsubaie24/backend:{{ lookup('env','BUILD_NUMBER') }}"
-    frontend_image: "reemaalsubaie24/frontend:{{ lookup('env','BUILD_NUMBER') }}"
+    backend_image: "nouraa253/demo-backend:{{ lookup('env','BUILD_NUMBER') }}"
+    frontend_image: "nouraa253/demo-frontend:{{ lookup('env','BUILD_NUMBER') }}"
 
   tasks:
     - name: Log in to Docker Hub
