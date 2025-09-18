@@ -4,8 +4,8 @@
   vars:
     build_number: "{{ lookup('env','BUILD_NUMBER') | default('dev', true) }}"
     workspace: "{{ lookup('env','WORKSPACE') | default(playbook_dir ~ '/..', true) }}"
-    backend_image: "nouraa253/demo-backend:{{ build_number }}"
-    frontend_image: "nouraa253/demo-frontend:{{ build_number }}"
+    backend_image: "reemaalsubaie24/backend:{{ build_number }}"
+    frontend_image: "reemaalsubaie24/frontend:{{ build_number }}"
 
   tasks:
     - name: Build backend Docker image
