@@ -8,10 +8,10 @@
     backend_image: "docker.io/reemaalsubaie24/backend:{{ build_number }}"
     frontend_image: "docker.io/reemaalsubaie24/frontend:{{ build_number }}"
     kubeconfig_path: "/home/ubuntu/.kube/config"
-    repo_root: "{{ playbook_dir | dirname }}"
+    repo_root: "{{ playbook_dir | dirname }}"  # جذر المشروع (اللي فيه k8s)
 
   tasks:
-    # ===== Copy manifests =====
+    # ===== نسخ الملفات =====
     - name: Copy namespace manifest
       copy:
         src: "{{ repo_root }}/k8s/namespace.yaml"
@@ -57,8 +57,16 @@
       environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
 
     # ===== Backend =====
+    - name: Check if deployment exists (backend)
+      command: kubectl get deployment backend -n fullstack
+      register: be_check
+      failed_when: false
+      changed_when: false
+      environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
+
     - name: Delete existing deployment if found (backend)
-      command: kubectl delete deployment backend --ignore-not-found=true -n fullstack
+      command: kubectl delete deployment backend -n fullstack
+      when: be_check.rc == 0
       environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
 
     - name: Apply backend
@@ -66,21 +74,31 @@
       environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
 
     # ===== Frontend =====
+    - name: Check if deployment exists (frontend)
+      command: kubectl get deployment frontend -n fullstack
+      register: fe_check
+      failed_when: false
+      changed_when: false
+      environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
+
     - name: Delete existing deployment if found (frontend)
-      command: kubectl delete deployment frontend --ignore-not-found=true -n fullstack
+      command: kubectl delete deployment frontend -n fullstack
+      when: fe_check.rc == 0
       environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
 
     - name: Apply frontend
       command: kubectl apply -f /home/ubuntu/Frontend-Deployment.yaml
       environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
 
+    # ===== Patch Frontend Service to NodePort =====
     - name: Patch frontend service to NodePort
-      command: kubectl patch svc frontend -p '{"spec": {"type":"NodePort"}}' -n fullstack
+      command: >
+        kubectl patch svc frontend -p '{"spec": {"type": "NodePort"}}' -n fullstack
       environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
 
     # ===== Debug =====
     - name: Get all deployments
-      command: kubectl get deployments -o wide -n fullstack
+      command: kubectl get deployments -n fullstack -o wide
       register: deployments
       environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
 
@@ -88,15 +106,15 @@
         var: deployments.stdout_lines
 
     - name: Get all pods
-      command: kubectl get pods -o wide -n fullstack
+      command: kubectl get pods -n fullstack -o wide
       register: pods
       environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
 
     - debug:
         var: pods.stdout_lines
 
-    - name: Get all services
-      command: kubectl get svc -o wide -n fullstack
+    - name: Get services
+      command: kubectl get svc -n fullstack -o wide
       register: services
       environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
 
