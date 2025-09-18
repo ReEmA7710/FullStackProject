@@ -15,13 +15,13 @@ spec:
     spec:
       containers:
         - name: backend
-          image: "{{ backend_image }}"   # هنا المتغير بدل رقم النسخة
-          imagePullPolicy: Always
+          image: "{{ backend_image }}"
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           env:
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://mysql:3306/mydb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+              value: jdbc:mysql://mysql:3306/mydb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
             - name: SPRING_DATASOURCE_USERNAME
               value: root
             - name: SPRING_DATASOURCE_PASSWORD
@@ -33,10 +33,8 @@ metadata:
   name: backend
   namespace: fullstack
 spec:
-  type: NodePort
   selector:
     app: backend
   ports:
     - port: 8080
       targetPort: 8080
-      nodePort: 31080
