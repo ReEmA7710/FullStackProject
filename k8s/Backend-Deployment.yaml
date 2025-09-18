@@ -14,19 +14,33 @@ spec:
         app: backend
     spec:
       initContainers:
-      - name: wait-for-mysql
-        image: busybox
-        command: ['sh', '-c', 'until nc -z mysql 3306; do echo waiting for mysql; sleep 2; done;']
+        - name: wait-for-mysql
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              MAX_RETRIES=15
+              COUNT=0
+              until nc -z mysql 3306; do
+                COUNT=$((COUNT+1))
+                if [ $COUNT -ge $MAX_RETRIES ]; then
+                  echo "MySQL not ready after $MAX_RETRIES attempts, exiting..."
+                  exit 1
+                fi
+                echo "Waiting for MySQL ($COUNT/$MAX_RETRIES)..."
+                sleep 5
+              done
+              echo "MySQL is up, continuing..."
       containers:
-      - name: backend
-        image: "{{ backend_image }}"
-        imagePullPolicy: IfNotPresent
-        ports:
-          - containerPort: 8080
-        env:
-          - name: SPRING_DATASOURCE_URL
-            value: jdbc:mysql://mysql:3306/mydb?useSSL=false&serverTimezone=UTC
-          - name: SPRING_DATASOURCE_USERNAME
-            value: root
-          - name: SPRING_DATASOURCE_PASSWORD
-            value: root
+        - name: backend
+          image: "{{ backend_image }}"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql:3306/mydb?useSSL=false&serverTimezone=UTC
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: root
