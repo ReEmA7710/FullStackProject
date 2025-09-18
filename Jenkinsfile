@@ -3,26 +3,28 @@ pipeline {
 
     environment {
         DOCKER_REGISTRY = "reemaalsubaie24"
-        BACKEND_IMAGE = "${DOCKER_REGISTRY}/backend:${BUILD_NUMBER}"
-        FRONTEND_IMAGE = "${DOCKER_REGISTRY}/frontend:${BUILD_NUMBER}"
+        BACKEND_IMAGE = "reemaalsubaie24/backend:${BUILD_NUMBER}"
+        FRONTEND_IMAGE = "reemaalsubaie24/frontend:${BUILD_NUMBER}"
     }
 
-    stages {
+      stages {
 
         stage('Docker Build') {
             steps {
-                echo "🔨 Building Docker images..."
-                sh """
-                    ansible-playbook -i ansible/inventory.ini ansible/build.yml \
-                      -e backend_image=${BACKEND_IMAGE} \
-                      -e frontend_image=${FRONTEND_IMAGE}
-                """
+                withCredentials([usernamePassword(
+                    credentialsId: 'docker',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]) {
+                    sh """
+                        ansible-playbook -i ansible/inventory.ini ansible/build.yml \
+                    """
+                }
             }
         }
 
-        stage('Docker Push') {
+        stage('Docker Push using Ansible') {
             steps {
-                echo "📦 Pushing images to Docker Hub..."
                 withCredentials([usernamePassword(
                     credentialsId: 'docker',
                     usernameVariable: 'DOCKER_USERNAME',
@@ -30,10 +32,6 @@ pipeline {
                 )]) {
                     sh """
                         ansible-playbook -i ansible/inventory.ini ansible/push.yml \
-                          -e backend_image=${BACKEND_IMAGE} \
-                          -e frontend_image=${FRONTEND_IMAGE} \
-                          -e docker_username=${DOCKER_USERNAME} \
-                          -e docker_password=${DOCKER_PASSWORD}
                     """
                 }
             }
@@ -41,22 +39,8 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                echo "🚀 Deploying to Kubernetes..."
-                sh """
-                    ansible-playbook -i ansible/inventory.ini ansible/deploy.yml \
-                      -e backend_image=${BACKEND_IMAGE} \
-                      -e frontend_image=${FRONTEND_IMAGE}
-                """
+                sh 'ansible-playbook -i ansible/inventory.ini ansible/deploy.yml'
             }
-        }
-    }
-
-    post {
-        success {
-            echo "✅ Pipeline finished successfully!"
-        }
-        failure {
-            echo "❌ Pipeline failed, please check logs."
         }
     }
 }
