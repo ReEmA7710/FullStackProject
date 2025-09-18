@@ -20,12 +20,14 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://mysql.fullstack.svc.cluster.local:3306/mydb?useSSL=false&serverTimezone=UTC
-            - name: SPRING_DATASOURCE_USERNAME
-              value: root
-            - name: SPRING_DATASOURCE_PASSWORD
-              value: root
+           env:
+  - name: SPRING_DATASOURCE_URL
+    value: jdbc:mysql://mysql:3306/mydb?useSSL=false&serverTimezone=UTC
+  - name: SPRING_DATASOURCE_USERNAME
+    value: root
+  - name: SPRING_DATASOURCE_PASSWORD
+    value: root
+
 ---
 apiVersion: v1
 kind: Service
