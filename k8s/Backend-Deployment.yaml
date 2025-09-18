@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: backend
-          image: "{{ backend_image }}"
-          imagePullPolicy: IfNotPresent
+          image: "{{ backend_image }}"   # هنا المتغير بدل رقم النسخة
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
@@ -33,10 +33,10 @@ metadata:
   name: backend
   namespace: fullstack
 spec:
-  type: NodePort        # غيرنا النوع من ClusterIP إلى NodePort
+  type: NodePort
   selector:
     app: backend
   ports:
     - port: 8080
       targetPort: 8080
-      nodePort: 31080   # اختاري أي رقم بين 30000-32767
+      nodePort: 31080
