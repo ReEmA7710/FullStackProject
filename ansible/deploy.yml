@@ -20,8 +20,8 @@
         mode: '0644'
     - name: Copy pvc manifest to target server
       copy:
-        src: "{{ repo_root }}/k8s/mysql_Pvc.yaml"
-        dest: /home/ubuntu/mysql_Pvc.yaml
+        src: "{{ repo_root }}/k8s/mysql-pvc.yaml"
+        dest: /home/ubuntu/mysql-pvc.yaml
         owner: ubuntu
         group: ubuntu
         mode: '0644'
@@ -64,7 +64,7 @@
         KUBECONFIG: "{{ kubeconfig_path }}"
         
     - name: Apply pvc
-      command: kubectl apply -f /home/ubuntu/mysql_Pvc.yaml
+      command: kubectl apply -f /home/ubuntu/mysql-pvc.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
         
