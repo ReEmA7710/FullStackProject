@@ -1,6 +1,6 @@
 ---
 - name: Deploy compare-app on Kubernetes
-  hosts: kubernetes_master
+  hosts: k8s_server
   become: true
 
   vars:
