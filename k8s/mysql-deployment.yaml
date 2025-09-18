@@ -28,7 +28,7 @@ spec:
       volumes:
         - name: mysql-storage
           persistentVolumeClaim:
-            claimName: pvc-test   # نستخدم الـ PVC اللي عندك
+            claimName: pvc-test
 ---
 apiVersion: v1
 kind: Service
@@ -40,4 +40,4 @@ spec:
   ports:
     - port: 3306
       targetPort: 3306
-  clusterIP: None   # خليه Headless عشان الـ Pods الثانية تتصل به مباشرة
+  type: ClusterIP   # هذا الديفولت بس خليناه واضح
