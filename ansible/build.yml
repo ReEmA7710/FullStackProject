@@ -13,7 +13,7 @@
         name: "{{ backend_image }}"
         source: build
         build:
-          path: "{{ workspace }}/demo"
+          path: "{{ workspace }}/backend"
           pull: yes
 
     - name: Build frontend Docker image
