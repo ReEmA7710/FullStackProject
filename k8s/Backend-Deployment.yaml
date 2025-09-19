@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: "{{ backend_image }}"   # تذكير: يحتاج Template من أنسبل ليتم الاستبدال
+          image: "{{ backend_image }}"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
@@ -26,7 +26,6 @@ spec:
               value: root
             - name: SPRING_DATASOURCE_PASSWORD
               value: root
-            
 ---
 apiVersion: v1
 kind: Service
@@ -41,5 +40,4 @@ spec:
     - name: http
       port: 8080
       targetPort: 8080
-      nodePort: 30085
-      
+      nodePort: 30081   # منفذ على النود
