@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY = "nouraa253"
-        BACKEND_IMAGE = "reemaalsubaie24/backend:${BUILD_NUMBER}"
+        DOCKER_REGISTRY = "reemaalsubaie24"
+        BACKEND_IMAGE = "reemaalsubaie24/backend-demo:${BUILD_NUMBER}"
         FRONTEND_IMAGE = "reemaalsubaie24/frontend:${BUILD_NUMBER}"
     }
 
