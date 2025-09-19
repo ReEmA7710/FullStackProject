@@ -19,6 +19,13 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+            value: "jdbc:mysql://mysql.fullstack.svc.cluster.local:3306/appdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+            - name: SPRING_DATASOURCE_USERNAME
+            valueFrom: { secretKeyRef: { name: mysql-secret, key: username } }
+            - name: SPRING_DATASOURCE_PASSWORD
+            valueFrom: { secretKeyRef: { name: mysql-secret, key: password } }
 ---
 apiVersion: v1
 kind: Service
