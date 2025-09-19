@@ -15,17 +15,18 @@ spec:
     spec:
       containers:
         - name: backend
-          image: "{{ backend_image }}"
+          image: "{{ backend_image }}"   # تذكير: يحتاج Template من أنسبل ليتم الاستبدال
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           env:
             - name: SPRING_DATASOURCE_URL
-            value: "jdbc:mysql://mysql.fullstack.svc.cluster.local:3306/appdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+              value: jdbc:mysql://mysql:3306/mydb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
             - name: SPRING_DATASOURCE_USERNAME
-            valueFrom: { secretKeyRef: { name: mysql-secret, key: username } }
+              value: root
             - name: SPRING_DATASOURCE_PASSWORD
-            valueFrom: { secretKeyRef: { name: mysql-secret, key: password } }
+              value: root
+            
 ---
 apiVersion: v1
 kind: Service
@@ -40,4 +41,5 @@ spec:
     - name: http
       port: 8080
       targetPort: 8080
-      nodePort: 30085   # منفذ على النود
+      nodePort: 30085
+      
