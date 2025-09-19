@@ -3,7 +3,7 @@
   hosts: localhost
   connection: local
   vars:
-    backend_image: "reemaalsubaie24/backend:{{ lookup('env','BUILD_NUMBER') }}"
+    backend_image: "reemaalsubaie24/backend-demo:{{ lookup('env','BUILD_NUMBER') }}"
     frontend_image: "reemaalsubaie24/frontend:{{ lookup('env','BUILD_NUMBER') }}"
 
   tasks:
