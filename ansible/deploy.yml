@@ -111,10 +111,10 @@
       command: kubectl apply -f /home/ubuntu/Frontend-Deployment.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
-
+        
     - name: Copy ingress manifest to target server
       copy:
-        src: "{{ repo_root }}/k8s/ingress.yaml"
+        src: "{{ repo_root }}/k8s/ingress-fullstack.yaml"
         dest: /home/ubuntu/ingress-fullstack.yaml
         owner: ubuntu
         group: ubuntu
