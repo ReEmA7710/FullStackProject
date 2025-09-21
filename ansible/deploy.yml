@@ -8,8 +8,7 @@
     backend_image: "docker.io/reemaalsubaie24/backend-demo:{{ build_number }}"
     frontend_image: "docker.io/reemaalsubaie24/frontend:{{ build_number }}"
     kubeconfig_path: "/home/ubuntu/.kube/config"
-    repo_root: "{{ playbook_dir | dirname }}"  # يشير إلى جذر المشروع (اللي فيه مجلد k8s)
-
+    repo_root: "{{ playbook_dir | dirname }}"  
   tasks:
     - name: Copy namespace manifest to target server
       copy:
@@ -25,7 +24,7 @@
         owner: ubuntu
         group: ubuntu
         mode: '0644'
-    # ===== نسخ mysql (ثابت ما فيه متغيرات)
+  
     - name: Copy mysql manifest to target server
       copy:
         src: "{{ repo_root }}/k8s/mysql-deployment.yaml"
@@ -34,7 +33,7 @@
         group: ubuntu
         mode: '0644'
 
-    # ===== رندر ملفات backend/frontend (من .yaml مباشرة باستخدام template)
+    
     - name: Render backend manifest with injected image
       template:
         src: "{{ repo_root }}/k8s/Backend-Deployment.yaml"
@@ -57,7 +56,7 @@
           - "backend => {{ backend_image }}"
           - "frontend => {{ frontend_image }}"
 
-    # ===== MySQL
+   
     - name: Apply namespace
       command: kubectl apply -f /home/ubuntu/namespace.yaml
       environment:
@@ -73,7 +72,7 @@
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    # ===== Backend
+    
     - name: Check if deployment exists (backend)
       command: kubectl get deployment backend-deployment
       register: be_check
@@ -93,7 +92,7 @@
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    # ===== Frontend
+    
     - name: Check if deployment exists (frontend)
       command: kubectl get deployment frontend-deployment
       register: fe_check
@@ -110,6 +109,19 @@
 
     - name: Apply frontend
       command: kubectl apply -f /home/ubuntu/Frontend-Deployment.yaml
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+
+    - name: Copy ingress manifest to target server
+      copy:
+        src: "{{ repo_root }}/k8s/ingress.yaml"
+        dest: /home/ubuntu/ingress-fullstack.yaml
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
+    - name: Apply ingress
+      command: kubectl apply -f /home/ubuntu/ingress-fullstack.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
