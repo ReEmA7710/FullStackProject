@@ -114,15 +114,29 @@
         
     - name: Copy ingress manifest to target server
       copy:
-        src: "{{ repo_root }}/k8s/ingress-fullstack.yaml"
-        dest: /home/ubuntu/ingress-fullstack.yaml
+        src: "{{ repo_root }}/k8s/ingress-frontend.yaml"
+        dest: /home/ubuntu/ingress-frontend.yaml
         owner: ubuntu
         group: ubuntu
         mode: '0644'
 
     - name: Apply ingress
-      command: kubectl apply -f /home/ubuntu/ingress-fullstack.yaml
+      command: kubectl apply -f /home/ubuntu/ingress-frontend.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
+
+    - name: Copy ingress manifest to target server
+      copy:
+        src: "{{ repo_root }}/k8s/ingress-backend.yaml"
+        dest: /home/ubuntu/ingress-backend.yaml
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
+    - name: Apply ingress
+      command: kubectl apply -f /home/ubuntu/ingress-backend.yaml
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+
 
 
