@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: fullstack
+  name: fullstack-backend
   namespace: fullstack
 spec:
   ingressClassName: nginx
@@ -9,17 +9,10 @@ spec:
     - host: fullstack.com
       http:
         paths:
-          - path: /api
+          - path: /customers
             pathType: Prefix
             backend:
               service:
                 name: backend
                 port:
                   number: 8080
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: frontend
-                port:
-                  number: 80
