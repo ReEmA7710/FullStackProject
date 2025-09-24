@@ -9,32 +9,25 @@ pipeline {
 
     stages {
         stage('SonarQube') {
-            steps {
-                withCredentials([string(credentialsId: 'sonar', variable: 'SONAR_TOKEN')]) {
-                    dir('backend') {
-                        sh """
-                            ./mvnw clean verify sonar:sonar \
-                              -Dsonar.projectKey=backend-demo \
-                              -Dsonar.host.url=$SONAR_HOST \
-                              -Dsonar.login=$SONAR_TOKEN
-                        """
-                    }
-                }
-
-                withCredentials([string(credentialsId: 'sonar', variable: 'SONAR_TOKEN')]) {
-                    dir('frontend') {
-                        sh """
-                            npm install
-                            npx sonar-scanner \
-                              -Dsonar.projectKey=frontend-demo \
-                              -Dsonar.sources=src \
-                              -Dsonar.host.url=$SONAR_HOST \
-                              -Dsonar.login=$SONAR_TOKEN
-                        """
-                    }
-                }
+    steps {
+        // Backend
+        withCredentials([string(credentialsId: 'sonar', variable: 'SONAR_TOKEN')]) {
+            dir('backend') {
+                sh 'chmod +x mvnw'
+                sh './mvnw clean verify sonar:sonar -Dsonar.projectKey=backend-demo -Dsonar.host.url=$SONAR_HOST -Dsonar.login=$SONAR_TOKEN'
             }
         }
+
+        // Frontend
+        withCredentials([string(credentialsId: 'sonar', variable: 'SONAR_TOKEN')]) {
+            dir('frontend') {
+                sh 'npm install'
+                sh 'npx sonar-scanner -Dsonar.projectKey=frontend-demo -Dsonar.sources=src -Dsonar.host.url=$SONAR_HOST -Dsonar.login=$SONAR_TOKEN'
+            }
+        }
+    }
+}
+
 
         stage('Nexus Upload') {
             steps {
