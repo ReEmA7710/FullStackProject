@@ -8,42 +8,37 @@ pipeline {
     }
 
     stages {
-       
-       stages {
 
-    stage('SonarQube Analysis - Backend') {
-        steps {
-            dir('backend') {
-                withCredentials([string(credentialsId: 'sonar-backend-token', variable: 'SONAR_TOKEN')]) {
-                    sh '''
-                        mvn clean verify sonar:sonar \
-                          -Dsonar.projectKey=backend-app \
-                          -Dsonar.host.url=$SONAR_HOST \
-                          -Dsonar.login=$SONAR_TOKEN
-                    '''
+        stage('SonarQube Analysis - Backend') {
+            steps {
+                dir('backend') {
+                    withCredentials([string(credentialsId: 'sonar-backend-token', variable: 'SONAR_TOKEN')]) {
+                        sh '''
+                            mvn clean verify sonar:sonar \
+                              -Dsonar.projectKey=backend-app \
+                              -Dsonar.host.url=$SONAR_HOST \
+                              -Dsonar.login=$SONAR_TOKEN
+                        '''
+                    }
                 }
             }
         }
-    }
 
-    stage('SonarQube Analysis - Frontend') {
-        steps {
-            dir('frontend') {
-                withCredentials([string(credentialsId: 'sonar-frontend-token', variable: 'SONAR_TOKEN')]) {
-                    sh '''
-                        npx sonar-scanner \
-                          -Dsonar.projectKey=frontend-app \
-                          -Dsonar.sources=src \
-                          -Dsonar.host.url=$SONAR_HOST \
-                          -Dsonar.login=$SONAR_TOKEN
-                    '''
+        stage('SonarQube Analysis - Frontend') {
+            steps {
+                dir('frontend') {
+                    withCredentials([string(credentialsId: 'sonar-frontend-token', variable: 'SONAR_TOKEN')]) {
+                        sh '''
+                            npx sonar-scanner \
+                              -Dsonar.projectKey=frontend-app \
+                              -Dsonar.sources=src \
+                              -Dsonar.host.url=$SONAR_HOST \
+                              -Dsonar.login=$SONAR_TOKEN
+                        '''
+                    }
                 }
             }
         }
-    }
-}
-
-
 
         stage('Docker Build') {
             steps {
