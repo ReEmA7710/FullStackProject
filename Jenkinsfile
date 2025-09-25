@@ -9,26 +9,37 @@ pipeline {
 
     stages {
        
-        stage('Nexus Upload') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'Nexus',
-                    usernameVariable: 'NEXUS_USER',
-                    passwordVariable: 'NEXUS_PASS'
-                )]) {
-                    dir('backend') {
-                        sh './mvnw deploy -DskipTests -Dnexus.username=$NEXUS_USER -Dnexus.password=$NEXUS_PASS'
-                    }
-
-                    dir('frontend') {
-                        sh 'npm install'
-                        sh 'npm run build'
-                        sh "zip -r frontend-dist-${BUILD_NUMBER}.zip dist/"
-                        sh "curl -u $NEXUS_USER:$NEXUS_PASS --upload-file frontend-dist-${BUILD_NUMBER}.zip ${NEXUS_URL}/repository/frontend-raw/frontend-dist-${BUILD_NUMBER}.zip"
-                    }
-                }
+       stage('SonarQube Analysis - Backend') {
+    steps {
+        dir('backend') {
+            withCredentials([string(credentialsId: 'sonar-backend-token', variable: 'SONAR_TOKEN')]) {
+                sh """
+                mvn clean verify sonar:sonar \
+                  -Dsonar.projectKey=backend-app \
+                  -Dsonar.host.url=${SONAR_HOST} \
+                  -Dsonar.login=$SONAR_TOKEN
+                """
             }
         }
+    }
+}
+
+stage('SonarQube Analysis - Frontend') {
+    steps {
+        dir('frontend') {
+            withCredentials([string(credentialsId: 'sonar-frontend-token', variable: 'SONAR_TOKEN')]) {
+                sh """
+                npx sonar-scanner \
+                  -Dsonar.projectKey=frontend-app \
+                  -Dsonar.sources=src \
+                  -Dsonar.host.url=${SONAR_HOST} \
+                  -Dsonar.login=$SONAR_TOKEN
+                """
+            }
+        }
+    }
+}
+
 
         stage('Docker Build') {
             steps {
