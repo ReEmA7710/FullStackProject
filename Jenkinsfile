@@ -51,8 +51,9 @@ pipeline {
         stage('SonarQube Backend') {
             steps {
                 withSonarQubeEnv('sonar-backend') {
-                    sh 'mvn -f backend/pom.xml clean verify sonar:sonar -Dsonar.projectKey=backend-app'
-                }
+    sh 'mvn -f backend/pom.xml clean verify sonar:sonar -Dsonar.projectKey=backend-app'
+}
+
                 timeout(time: 15, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
