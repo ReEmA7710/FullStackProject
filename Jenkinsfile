@@ -42,6 +42,26 @@ stage('SonarQube Backend Analysis') {
         }
     }
 }
+stage('SonarQube Frontend Analysis') {
+    steps {
+        withSonarQubeEnv('sonar-frontend') {
+            // تحديد مسار Sonar Scanner المثبت في Jenkins
+            def scannerHome = tool 'sonar-scanner'
+            dir('frontend') {
+                sh """
+                    ${scannerHome}/bin/sonar-scanner \
+                      -Dsonar.projectKey=frontend-fullstack-pro \
+                      -Dsonar.sources=. \
+                      -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+                """
+            }
+            // الانتظار حتى تظهر نتيجة Quality Gate قبل متابعة Pipeline
+            timeout(time: 15, unit: 'MINUTES') {
+                waitForQualityGate abortPipeline: true
+            }
+        }
+    }
+}
 
         stage('Backend Build & Test') {
             environment { SPRING_PROFILES_ACTIVE = 'ci-testing' }
