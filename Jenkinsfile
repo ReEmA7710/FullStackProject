@@ -50,7 +50,7 @@ pipeline {
 
         stage('SonarQube Backend') {
             steps {
-                withSonarQubeEnv('sonar-backend') {
+                withSonarQubeEnv('sonar-backend-server') {
     sh 'mvn -f backend/pom.xml clean verify sonar:sonar -Dsonar.projectKey=backend-app'
 }
 
@@ -62,7 +62,7 @@ pipeline {
 
         stage('SonarQube Frontend Analysis') {
             steps {
-                withSonarQubeEnv('sonar-frontend') {
+                withSonarQubeEnv('sonar-frontend-server') {
                     script {
                         def scannerHome = tool 'sonar-scanner'
                         dir('frontend') {
