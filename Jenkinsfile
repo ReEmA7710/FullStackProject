@@ -9,29 +9,48 @@ pipeline {
 
     stages {
 
-       stage('Build & test'){
-      parallel {
-        stage('Build & Test Frontend') {
-          steps {
-            dir('frontend') {
-              sh 'node -v && npm -v'
-              sh 'npm ci'
-              sh 'xvfb-run -a npx ng test --watch=false --browsers=ChromeHeadless'
-              sh 'npm run build'
+    stage('Bulid & Test All Projects') {
+    parallel {
+
+        stage('Frontend Build & Test') {
+            steps {
+                dir('frontend') {
+                    sh '''
+                        echo "==> Checking Node & NPM versions..."
+                        node -v
+                        npm -v
+                        
+                        echo "==> Installing frontend dependencies..."
+                        npm ci
+                        
+                        echo "==> Running Angular tests (headless)..."
+                        xvfb-run -a npx ng test --watch=false --browsers=ChromeHeadless
+                        
+                        echo "==> Building Angular production bundle..."
+                        npm run build -- --configuration=production
+                    '''
+                }
             }
-          }
         }
-        stage('Build & Test Backend') {
-          environment { SPRING_PROFILES_ACTIVE = 'test-no-db' }
-          steps {
-            dir('backend'){
-              sh 'mvn clean package -DskipTests=true'
-              sh 'mvn test'
+
+        stage('Backend Build & Test') {
+            environment { SPRING_PROFILES_ACTIVE = 'ci-testing' }
+            steps {
+                dir('backend') {
+                    sh '''
+                        echo "==> Packaging backend application (tests skipped)..."
+                        mvn clean package -DskipTests
+                        
+                        echo "==> Running backend unit tests..."
+                        mvn test
+                    '''
+                }
             }
-          }
         }
-      }
+
     }
+}
+
         stage('Docker Build') {
             steps {
                 withCredentials([usernamePassword(
