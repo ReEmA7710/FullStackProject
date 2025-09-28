@@ -48,7 +48,7 @@ pipeline {
             }
         }
 
-        stage('SonarQube Backend Analysis') {
+        stage('SonarQube Backend') {
             steps {
                 withSonarQubeEnv('sonar-backend') {
                     sh 'mvn -f backend/pom.xml clean verify sonar:sonar -Dsonar.projectKey=backend-app'
