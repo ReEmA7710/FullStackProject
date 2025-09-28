@@ -24,7 +24,7 @@ pipeline {
         stage('Build & Test Backend') {
           environment { SPRING_PROFILES_ACTIVE = 'test-no-db' }
           steps {
-            dir('demo'){
+            dir('backend'){
               sh 'mvn clean package -DskipTests=true'
               sh 'mvn test'
             }
