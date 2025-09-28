@@ -48,19 +48,20 @@ pipeline {
             }
         }
 
+      stage('SonarQube Analysis') {
+    parallel {
         stage('SonarQube Backend') {
             steps {
                 withSonarQubeEnv('sonar-backend-server') {
-    sh 'mvn -f backend/pom.xml clean verify sonar:sonar -Dsonar.projectKey=backend-app'
-}
-
+                    sh 'mvn -f backend/pom.xml clean verify sonar:sonar -Dsonar.projectKey=backend-app'
+                }
                 timeout(time: 15, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
         }
 
-        stage('SonarQube Frontend Analysis') {
+        stage('SonarQube Frontend') {
             steps {
                 withSonarQubeEnv('sonar-frontend-server') {
                     script {
@@ -80,6 +81,9 @@ pipeline {
                 }
             }
         }
+    }
+}
+
 
         stage('Docker Build') {
             steps {
