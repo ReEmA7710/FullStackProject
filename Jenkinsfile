@@ -9,32 +9,43 @@ pipeline {
 
     stages {
 
-        stage('SonarQube Analysis - Backend') {
-            steps {
-                dir('backend') {
-                    withCredentials([string(credentialsId: 'sonar-backend-token', variable: 'SONAR_TOKEN')]) {
-                        sh '''
-                            mvn clean verify sonar:sonar \
-                              -Dsonar.projectKey=backend-app \
-                              -Dsonar.host.url=$SONAR_HOST \
-                              -Dsonar.login=$SONAR_TOKEN
-                        '''
+        stage('Build and Test') {
+            parallel {
+                stage('Frontend Pipeline') {
+                    steps {
+                        dir('frontend') {
+                            sh '''
+                                echo "Checking Node & NPM versions..."
+                                node -v
+                                npm -v
+                                
+                                echo "Installing dependencies..."
+                                npm install
+                                
+                                echo "Running Angular unit tests..."
+                                xvfb-run -a npx ng test --watch=false --browsers=ChromeHeadless
+                                
+                                echo "Building Angular app..."
+                                npm run build -- --configuration=production
+                            '''
+                        }
                     }
                 }
-            }
-        }
 
-        stage('SonarQube Analysis - Frontend') {
-            steps {
-                dir('frontend') {
-                    withCredentials([string(credentialsId: 'sonar-frontend-token', variable: 'SONAR_TOKEN')]) {
-                        sh '''
-                            npx sonar-scanner \
-                              -Dsonar.projectKey=frontend-app \
-                              -Dsonar.sources=src \
-                              -Dsonar.host.url=$SONAR_HOST \
-                              -Dsonar.login=$SONAR_TOKEN
-                        '''
+                stage('Backend Pipeline') {
+                    environment {
+                        SPRING_PROFILES_ACTIVE = 'ci-test'
+                    }
+                    steps {
+                        dir('backend') {
+                            sh '''
+                                echo "Packaging Spring Boot app..."
+                                mvn clean package -DskipTests
+                                
+                                echo "Running backend tests..."
+                                mvn test
+                            '''
+                        }
                     }
                 }
             }
