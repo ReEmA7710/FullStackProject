@@ -50,10 +50,14 @@ pipeline {
 
       stage('SonarQube Analysis') {
     parallel {
-        stage('SonarQube Backend') {
+      stage('SonarQube Backend') {
             steps {
                 withSonarQubeEnv('sonar-backend-server') {
-                    sh 'mvn -f backend/pom.xml clean verify sonar:sonar -Dsonar.projectKey=backend-app'
+                    sh '''
+                        mvn -f backend/pom.xml clean verify sonar:sonar \
+                          -Dsonar.projectKey=backend-app \
+                          -Dsonar.projectName=backend-app
+                    '''
                 }
                 timeout(time: 15, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
@@ -70,6 +74,7 @@ pipeline {
                             sh """
                                 ${scannerHome}/bin/sonar-scanner \
                                   -Dsonar.projectKey=frontend-app \
+                                  -Dsonar.projectName=frontend-app \
                                   -Dsonar.sources=. \
                                   -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
                             """
