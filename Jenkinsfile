@@ -9,47 +9,30 @@ pipeline {
 
     stages {
 
-        stage('Build and Test') {
-            parallel {
-                stage('Frontend Pipeline') {
-                    steps {
-                        dir('frontend') {
-                            sh '''
-                                echo "Checking Node & NPM versions..."
-                                node -v
-                                npm -v
-                                
-                                echo "Installing dependencies..."
-                                npm install
-                                
-                                echo "Running Angular unit tests..."
-                                xvfb-run -a npx ng test --watch=false --browsers=ChromeHeadless
-                                
-                                echo "Building Angular app..."
-                                npm run build -- --configuration=production
-                            '''
-                        }
-                    }
-                }
-
-                stage('Backend Pipeline') {
-                    environment {
-                        SPRING_PROFILES_ACTIVE = 'ci-test'
-                    }
-                    steps {
-                        dir('backend') {
-                            sh '''
-                                echo "Packaging Spring Boot app..."
-                                mvn clean package -DskipTests
-                                
-                                echo "Running backend tests..."
-                                mvn test
-                            '''
-                        }
-                    }
-                }
+        stage('Build & test'){
+      parallel {
+        stage('Build & Test Frontend') {
+          steps {
+            dir('frontend') {
+              sh 'node -v && npm -v'
+              sh 'npm ci'
+              sh 'xvfb-run -a npx ng test --watch=false --browsers=ChromeHeadless'
+              sh 'npm run build'
             }
+          }
         }
+        stage('Build & Test Backend') {
+          environment { SPRING_PROFILES_ACTIVE = 'test-no-db' }
+          steps {
+            dir('demo'){
+              sh 'mvn clean package -DskipTests=true'
+              sh 'mvn test'
+            }
+          }
+        }
+      }
+    }
+
 
         stage('Docker Build') {
             steps {
