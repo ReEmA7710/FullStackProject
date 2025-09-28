@@ -9,8 +9,7 @@ pipeline {
 
     stages {
 
-       stages {
-    stage('Build & test'){
+       stage('Build & test'){
       parallel {
         stage('Build & Test Frontend') {
           steps {
@@ -25,7 +24,7 @@ pipeline {
         stage('Build & Test Backend') {
           environment { SPRING_PROFILES_ACTIVE = 'test-no-db' }
           steps {
-            dir('backend'){
+            dir('demo'){
               sh 'mvn clean package -DskipTests=true'
               sh 'mvn test'
             }
@@ -33,7 +32,6 @@ pipeline {
         }
       }
     }
-
         stage('Docker Build') {
             steps {
                 withCredentials([usernamePassword(
