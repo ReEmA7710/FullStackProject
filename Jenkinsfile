@@ -89,6 +89,52 @@ pipeline {
     }
 }
 
+stage('Upload to Nexus') {
+    parallel {
+
+        stage('Upload Backend to Nexus') {
+            steps {
+                dir('backend') {
+                    nexusArtifactUploader artifacts: [[
+                        artifactId: 'demo',                // Artifact ID from pom.xml
+                        classifier: '',
+                        file: "target/demo-0.0.1-SNAPSHOT.jar",
+                        type: 'jar'
+                    ]],
+                    credentialsId: 'Nexus',                // Jenkins credential for Nexus access
+                    groupId: 'com.example',                 // Group ID from pom.xml
+                    nexusUrl: "${NEXUS_URL}",               // Nexus server URL
+                    nexusVersion: 'nexus3',
+                    protocol: 'http',
+                    repository: 'backend-repo',            // Repository for backend JAR
+                    version: "${BUILD_NUMBER}"             // Use Jenkins build number as version
+                }
+            }
+        }
+
+        stage('Upload Frontend to Nexus') {
+            steps {
+                dir('frontend') {
+                    sh 'tar -czf frontend-${BUILD_NUMBER}.tgz -C dist .' // Package frontend build
+                    nexusArtifactUploader artifacts: [[
+                        artifactId: 'frontend',               // Artifact ID for frontend
+                        classifier: '',
+                        file: "frontend-${BUILD_NUMBER}.tgz",
+                        type: 'tgz'
+                    ]],
+                    credentialsId: 'Nexus',                // Jenkins credential for Nexus access
+                    groupId: 'com.example.frontend',       // Group ID for frontend
+                    nexusUrl: "${NEXUS_URL}",               // Nexus server URL
+                    nexusVersion: 'nexus3',
+                    protocol: 'http',
+                    repository: 'frontend-repo',           // Repository for frontend package
+                    version: "${BUILD_NUMBER}"             // Use Jenkins build number as version
+                }
+            }
+        }
+
+    }
+}
 
         stage('Docker Build') {
             steps {
