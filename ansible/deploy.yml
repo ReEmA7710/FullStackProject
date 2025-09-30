@@ -8,6 +8,7 @@
     frontend_image: "docker.io/reemaalsubaie24/frontend:{{ build_number }}"
     kubeconfig_path: "/home/ubuntu/.kube/config"
     repo_root: "{{ playbook_dir | dirname }}"  
+    ns: "fullstack"    
 
   tasks:
     - name: Transfer Namespace Manifest
@@ -62,21 +63,22 @@
         KUBECONFIG: "{{ kubeconfig_path }}"
 
     - name: Apply MySQL PVC
-      command: kubectl apply -f /home/ubuntu/mysql-pvc.yaml
+      command: kubectl apply -f /home/ubuntu/mysql-pvc.yaml -n {{ ns }}
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
     - name: Remove Old MySQL Deployment if Exists
       command: kubectl -n {{ ns }} delete deployment mysql --ignore-not-found
-      environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
 
     - name: Apply MySQL Deployment
-      command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml
+      command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml -n {{ ns }}
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
     - name: Check Backend Deployment Existence
-      command: kubectl get deployment backend-deployment
+      command: kubectl -n {{ ns }} get deployment backend-deployment
       register: be_check
       failed_when: false
       changed_when: false
@@ -84,18 +86,18 @@
         KUBECONFIG: "{{ kubeconfig_path }}"
 
     - name: Remove Old Backend Deployment if Exists
-      command: kubectl delete deployment backend-deployment
+      command: kubectl -n {{ ns }} delete deployment backend-deployment
       when: be_check.rc == 0
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
     - name: Apply Backend Deployment
-      command: kubectl apply -f /home/ubuntu/Backend-Deployment.yaml
+      command: kubectl apply -f /home/ubuntu/Backend-Deployment.yaml -n {{ ns }}
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
     - name: Check Frontend Deployment Existence
-      command: kubectl get deployment frontend-deployment
+      command: kubectl -n {{ ns }} get deployment frontend-deployment
       register: fe_check
       failed_when: false
       changed_when: false
@@ -103,13 +105,13 @@
         KUBECONFIG: "{{ kubeconfig_path }}"
 
     - name: Remove Old Frontend Deployment if Exists
-      command: kubectl delete deployment frontend-deployment
+      command: kubectl -n {{ ns }} delete deployment frontend-deployment
       when: fe_check.rc == 0
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
     - name: Apply Frontend Deployment
-      command: kubectl apply -f /home/ubuntu/Frontend-Deployment.yaml
+      command: kubectl apply -f /home/ubuntu/Frontend-Deployment.yaml -n {{ ns }}
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
@@ -122,7 +124,7 @@
         mode: '0644'
 
     - name: Apply Frontend Ingress
-      command: kubectl apply -f /home/ubuntu/ingress-frontend.yaml
+      command: kubectl apply -f /home/ubuntu/ingress-frontend.yaml -n {{ ns }}
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
@@ -135,6 +137,6 @@
         mode: '0644'
 
     - name: Apply Backend Ingress
-      command: kubectl apply -f /home/ubuntu/ingress-backend.yaml
+      command: kubectl apply -f /home/ubuntu/ingress-backend.yaml -n {{ ns }}
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
