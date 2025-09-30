@@ -1,5 +1,4 @@
----
-- name: Deploy fullStakProject on k8s
+- name: Deploy FullStack Project on Kubernetes
   hosts: k8s_server
   become: true
 
@@ -9,23 +8,25 @@
     frontend_image: "docker.io/reemaalsubaie24/frontend:{{ build_number }}"
     kubeconfig_path: "/home/ubuntu/.kube/config"
     repo_root: "{{ playbook_dir | dirname }}"  
+
   tasks:
-    - name: Copy namespace manifest to target server
+    - name: Transfer Namespace Manifest
       copy:
         src: "{{ repo_root }}/k8s/namespace.yaml"
         dest: /home/ubuntu/namespace.yaml
         owner: ubuntu
         group: ubuntu
         mode: '0644'
-    - name: Copy pvc manifest to target server
+
+    - name: Transfer MySQL PVC Manifest
       copy:
         src: "{{ repo_root }}/k8s/mysql-pvc.yaml"
         dest: /home/ubuntu/mysql-pvc.yaml
         owner: ubuntu
         group: ubuntu
         mode: '0644'
-  
-    - name: Copy mysql manifest to target server
+
+    - name: Transfer MySQL Deployment Manifest
       copy:
         src: "{{ repo_root }}/k8s/mysql-deployment.yaml"
         dest: /home/ubuntu/mysql-deployment.yaml
@@ -33,8 +34,7 @@
         group: ubuntu
         mode: '0644'
 
-    
-    - name: Render backend manifest with injected image
+    - name: Render Backend Deployment with Image Tag
       template:
         src: "{{ repo_root }}/k8s/Backend-Deployment.yaml"
         dest: /home/ubuntu/Backend-Deployment.yaml
@@ -42,7 +42,7 @@
         group: ubuntu
         mode: '0644'
 
-    - name: Render frontend manifest with injected image
+    - name: Render Frontend Deployment with Image Tag
       template:
         src: "{{ repo_root }}/k8s/Frontend-Deployment.yaml"
         dest: /home/ubuntu/Frontend-Deployment.yaml
@@ -50,30 +50,32 @@
         group: ubuntu
         mode: '0644'
 
-    - name: Show rendered images (debug)
+    - name: Debug Rendered Images
       debug:
         msg:
           - "backend => {{ backend_image }}"
           - "frontend => {{ frontend_image }}"
 
-   
-    - name: Apply namespace
+    - name: Apply Namespace
       command: kubectl apply -f /home/ubuntu/namespace.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
-        
-    - name: Apply pvc
+
+    - name: Apply MySQL PVC
       command: kubectl apply -f /home/ubuntu/mysql-pvc.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
-        
-    - name: Apply mysql
+
+    - name: Remove Old MySQL Deployment if Exists
+      command: kubectl -n {{ ns }} delete deployment mysql --ignore-not-found
+      environment: { KUBECONFIG: "{{ kubeconfig_path }}" }
+
+    - name: Apply MySQL Deployment
       command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    
-    - name: Check if deployment exists (backend)
+    - name: Check Backend Deployment Existence
       command: kubectl get deployment backend-deployment
       register: be_check
       failed_when: false
@@ -81,19 +83,18 @@
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Delete existing deployment if found (backend)
+    - name: Remove Old Backend Deployment if Exists
       command: kubectl delete deployment backend-deployment
       when: be_check.rc == 0
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Apply backend
+    - name: Apply Backend Deployment
       command: kubectl apply -f /home/ubuntu/Backend-Deployment.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    
-    - name: Check if deployment exists (frontend)
+    - name: Check Frontend Deployment Existence
       command: kubectl get deployment frontend-deployment
       register: fe_check
       failed_when: false
@@ -101,18 +102,18 @@
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Delete existing deployment if found (frontend)
+    - name: Remove Old Frontend Deployment if Exists
       command: kubectl delete deployment frontend-deployment
       when: fe_check.rc == 0
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Apply frontend
+    - name: Apply Frontend Deployment
       command: kubectl apply -f /home/ubuntu/Frontend-Deployment.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
-        
-    - name: Copy ingress manifest to target server
+
+    - name: Transfer Frontend Ingress Manifest
       copy:
         src: "{{ repo_root }}/k8s/ingress-frontend.yaml"
         dest: /home/ubuntu/ingress-frontend.yaml
@@ -120,12 +121,12 @@
         group: ubuntu
         mode: '0644'
 
-    - name: Apply ingress
+    - name: Apply Frontend Ingress
       command: kubectl apply -f /home/ubuntu/ingress-frontend.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Copy ingress manifest to target server
+    - name: Transfer Backend Ingress Manifest
       copy:
         src: "{{ repo_root }}/k8s/ingress-backend.yaml"
         dest: /home/ubuntu/ingress-backend.yaml
@@ -133,10 +134,7 @@
         group: ubuntu
         mode: '0644'
 
-    - name: Apply ingress
+    - name: Apply Backend Ingress
       command: kubectl apply -f /home/ubuntu/ingress-backend.yaml
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
-
-
-
