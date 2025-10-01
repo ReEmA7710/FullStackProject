@@ -8,7 +8,6 @@ pipeline {
     }
 
     stages {
-
         /* ---------------- BUILD & TEST ---------------- */
         stage('Build & Test All Projects') {
             parallel {
@@ -94,23 +93,22 @@ pipeline {
         /* ---------------- NEXUS UPLOAD ---------------- */
         stage('Upload to Nexus') {
             parallel {
-
                 stage('Upload Backend to Nexus') {
                     steps {
                         dir('backend') {
                             nexusArtifactUploader artifacts: [[
-                                artifactId: 'demo',                
+                                artifactId: 'demo',
                                 classifier: '',
                                 file: "target/demo-0.0.1-SNAPSHOT.jar",
                                 type: 'jar'
                             ]],
-                            credentialsId: 'Nexus',                
-                            groupId: 'com.example',                 
-                            nexusUrl: "${NEXUS_URL}",               
+                            credentialsId: 'Nexus',
+                            groupId: 'com.example',
+                            nexusUrl: "${NEXUS_URL}",
                             nexusVersion: 'nexus3',
                             protocol: 'http',
-                            repository: 'backend-repo',            
-                            version: "${BUILD_NUMBER}"             
+                            repository: 'backend-repo',
+                            version: "${BUILD_NUMBER}"
                         }
                     }
                 }
@@ -118,24 +116,23 @@ pipeline {
                 stage('Upload Frontend to Nexus') {
                     steps {
                         dir('frontend') {
-                            sh 'tar -czf frontend-${BUILD_NUMBER}.tgz -C dist .' 
+                            sh 'tar -czf frontend-${BUILD_NUMBER}.tgz -C dist .'
                             nexusArtifactUploader artifacts: [[
-                                artifactId: 'frontend',               
+                                artifactId: 'frontend',
                                 classifier: '',
                                 file: "frontend-${BUILD_NUMBER}.tgz",
                                 type: 'tgz'
                             ]],
-                            credentialsId: 'Nexus',                
-                            groupId: 'com.example.frontend',       
-                            nexusUrl: "${NEXUS_URL}",               
+                            credentialsId: 'Nexus',
+                            groupId: 'com.example.frontend',
+                            nexusUrl: "${NEXUS_URL}",
                             nexusVersion: 'nexus3',
                             protocol: 'http',
-                            repository: 'frontend-repo',           
-                            version: "${BUILD_NUMBER}"             
+                            repository: 'frontend-repo',
+                            version: "${BUILD_NUMBER}"
                         }
                     }
                 }
-
             }
         }
 
@@ -170,9 +167,10 @@ pipeline {
                 sh 'ansible-playbook -i ansible/inventory.ini ansible/deploy.yml'
             }
         }
+    }
 
-        /* ---------------- EMAIL ---------------- */
-       post {
+    /* ---------------- EMAIL ---------------- */
+    post {
         always {
             script {
                 def jobName = env.JOB_NAME
@@ -190,8 +188,6 @@ pipeline {
                             </div>
                             <p>Check the <a href="${env.BUILD_URL}">console output</a>.</p>
                             <p style="font-size: 16px;">The build has finished with a <strong>${pipelineStatusUpper}</strong> status.</p>
-
-                            
                         </div>
                     </body>
                 </html>"""
