@@ -168,7 +168,7 @@ stage('Upload to Nexus') {
 
     }
 }
-  post {
+   post {
         always {
             script {
                 def jobName = env.JOB_NAME
@@ -186,6 +186,8 @@ stage('Upload to Nexus') {
                             </div>
                             <p>Check the <a href="${env.BUILD_URL}">console output</a>.</p>
                             <p style="font-size: 16px;">The build has finished with a <strong>${pipelineStatusUpper}</strong> status.</p>
+
+                            
                         </div>
                     </body>
                 </html>"""
@@ -200,4 +202,5 @@ stage('Upload to Nexus') {
                 )
             }
         }
-    } 
+    }
+}
