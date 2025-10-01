@@ -173,45 +173,28 @@ stage('Upload to Nexus') {
         script {
             def jobName = env.JOB_NAME
             def buildNumber = env.BUILD_NUMBER
-            def pipelineStatus = currentBuild.currentResult
-            def pipelineStatusUpper = pipelineStatus.toUpperCase()
-            def bannerColor = pipelineStatusUpper == 'SUCCESS' ? '#4CAF50' : '#F44336'
+            def pipelineStatus = currentBuild.currentResult.toUpperCase()
+            def buildTime = new Date().format("yyyy-MM-dd HH:mm:ss")
+            def bannerColor = pipelineStatus == 'SUCCESS' ? '#28a745' : '#dc3545'
+            def statusIcon = pipelineStatus == 'SUCCESS' ? "✅" : "❌"
 
-            def body = """<html>
-                <body style="font-family: Arial, sans-serif;">
-                    <h2 style="color: ${bannerColor};">🔔 Jenkins Pipeline Notification</h2>
-                    
-                    <table border="1" cellspacing="0" cellpadding="8" style="border-collapse: collapse; width: 70%;">
-                        <tr style="background-color: ${bannerColor}; color: white;">
-                            <th>Field</th>
-                            <th>Details</th>
-                        </tr>
-                        <tr>
-                            <td><b>Job Name</b></td>
-                            <td>${jobName}</td>
-                        </tr>
-                        <tr>
-                            <td><b>Build Number</b></td>
-                            <td>${buildNumber}</td>
-                        </tr>
-                        <tr>
-                            <td><b>Status</b></td>
-                            <td><b style="color: ${bannerColor};">${pipelineStatusUpper}</b></td>
-                        </tr>
-                        <tr>
-                            <td><b>Console Output</b></td>
-                            <td><a href="${env.BUILD_URL}">Click here</a></td>
-                        </tr>
-                    </table>
-
-                    <p style="margin-top: 15px; font-size: 14px;">
-                        ✅ This is an automated message from Jenkins.
-                    </p>
+            def body = """
+            <html>
+                <body style="font-family: Arial, sans-serif; background-color:#f8f9fa; padding:20px;">
+                    <div style="max-width: 700px; margin:auto; border: 3px solid ${bannerColor}; padding: 20px; border-radius: 12px; background:white; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                        <h2 style="margin-bottom:5px;">${jobName} - Build #${buildNumber}</h2>
+                        <div style="background-color: ${bannerColor}; padding: 12px; border-radius: 5px; margin-bottom:15px; text-align:center;">
+                            <h3 style="color: white; margin:0;">Pipeline Status: ${pipelineStatus} ${statusIcon}</h3>
+                        </div>
+                        <p style="font-size:14px;">Build Time: ${buildTime}</p>
+                        <p style="font-size:14px;">For more details, please <a href="${env.BUILD_URL}">view the Console Output</a>.</p>
+                    </div>
                 </body>
-            </html>"""
+            </html>
+            """
 
-            emailext (
-                subject: "🔔 ${jobName} - Build #${buildNumber} - ${pipelineStatusUpper}",
+            emailext(
+                subject: "${jobName} - Build ${buildNumber} - ${pipelineStatus} ${statusIcon}",
                 body: body,
                 to: 'alsubaiereema06@gmail.com',
                 from: 'jenkins@example.com',
