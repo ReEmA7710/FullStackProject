@@ -8,7 +8,7 @@ pipeline {
     }
 
     stages {
-        /* ---------------- BUILD & TEST ---------------- */
+
         stage('Build & Test All Projects') {
             parallel {
                 stage('Frontend Build & Test') {
@@ -48,95 +48,94 @@ pipeline {
             }
         }
 
-        /* ---------------- SONARQUBE ---------------- */
-        stage('SonarQube Analysis') {
-            parallel {
-                stage('SonarQube Backend') {
-                    steps {
-                        withSonarQubeEnv('sonar-backend-server') {
-                            sh '''
-                                mvn -f backend/pom.xml clean verify sonar:sonar \
-                                  -Dsonar.projectKey=backend-app \
-                                  -Dsonar.projectName=backend-app
-                            '''
-                        }
-                        timeout(time: 15, unit: 'MINUTES') {
-                            waitForQualityGate abortPipeline: true
-                        }
-                    }
+      stage('SonarQube Analysis') {
+    parallel {
+      stage('SonarQube Backend') {
+            steps {
+                withSonarQubeEnv('sonar-backend-server') {
+                    sh '''
+                        mvn -f backend/pom.xml clean verify sonar:sonar \
+                          -Dsonar.projectKey=backend-app \
+                          -Dsonar.projectName=backend-app
+                    '''
                 }
-
-                stage('SonarQube Frontend') {
-                    steps {
-                        withSonarQubeEnv('sonar-frontend-server') {
-                            script {
-                                def scannerHome = tool 'sonar-scanner'
-                                dir('frontend') {
-                                    sh """
-                                        ${scannerHome}/bin/sonar-scanner \
-                                          -Dsonar.projectKey=frontend-app \
-                                          -Dsonar.projectName=frontend-app \
-                                          -Dsonar.sources=. \
-                                          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-                                    """
-                                }
-                            }
-                        }
-                        timeout(time: 15, unit: 'MINUTES') {
-                            waitForQualityGate abortPipeline: true
-                        }
-                    }
+                timeout(time: 15, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
 
-        /* ---------------- NEXUS UPLOAD ---------------- */
-        stage('Upload to Nexus') {
-            parallel {
-                stage('Upload Backend to Nexus') {
-                    steps {
-                        dir('backend') {
-                            nexusArtifactUploader artifacts: [[
-                                artifactId: 'demo',
-                                classifier: '',
-                                file: "target/demo-0.0.1-SNAPSHOT.jar",
-                                type: 'jar'
-                            ]],
-                            credentialsId: 'Nexus',
-                            groupId: 'com.example',
-                            nexusUrl: "${NEXUS_URL}",
-                            nexusVersion: 'nexus3',
-                            protocol: 'http',
-                            repository: 'backend-repo',
-                            version: "${BUILD_NUMBER}"
-                        }
-                    }
-                }
-
-                stage('Upload Frontend to Nexus') {
-                    steps {
+        stage('SonarQube Frontend') {
+            steps {
+                withSonarQubeEnv('sonar-frontend-server') {
+                    script {
+                        def scannerHome = tool 'sonar-scanner'
                         dir('frontend') {
-                            sh 'tar -czf frontend-${BUILD_NUMBER}.tgz -C dist .'
-                            nexusArtifactUploader artifacts: [[
-                                artifactId: 'frontend',
-                                classifier: '',
-                                file: "frontend-${BUILD_NUMBER}.tgz",
-                                type: 'tgz'
-                            ]],
-                            credentialsId: 'Nexus',
-                            groupId: 'com.example.frontend',
-                            nexusUrl: "${NEXUS_URL}",
-                            nexusVersion: 'nexus3',
-                            protocol: 'http',
-                            repository: 'frontend-repo',
-                            version: "${BUILD_NUMBER}"
+                            sh """
+                                ${scannerHome}/bin/sonar-scanner \
+                                  -Dsonar.projectKey=frontend-app \
+                                  -Dsonar.projectName=frontend-app \
+                                  -Dsonar.sources=. \
+                                  -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+                            """
+                        }
+                        timeout(time: 15, unit: 'MINUTES') {
+                            waitForQualityGate abortPipeline: true
                         }
                     }
                 }
             }
         }
+    }
+}
 
-        /* ---------------- DOCKER ---------------- */
+stage('Upload to Nexus') {
+    parallel {
+
+        stage('Upload Backend to Nexus') {
+            steps {
+                dir('backend') {
+                    nexusArtifactUploader artifacts: [[
+                        artifactId: 'demo',                // Artifact ID from pom.xml
+                        classifier: '',
+                        file: "target/demo-0.0.1-SNAPSHOT.jar",
+                        type: 'jar'
+                    ]],
+                    credentialsId: 'Nexus',                // Jenkins credential for Nexus access
+                    groupId: 'com.example',                 // Group ID from pom.xml
+                    nexusUrl: "${NEXUS_URL}",               // Nexus server URL
+                    nexusVersion: 'nexus3',
+                    protocol: 'http',
+                    repository: 'backend-repo',            // Repository for backend JAR
+                    version: "${BUILD_NUMBER}"             // Use Jenkins build number as version
+                }
+            }
+        }
+
+        stage('Upload Frontend to Nexus') {
+            steps {
+                dir('frontend') {
+                    sh 'tar -czf frontend-${BUILD_NUMBER}.tgz -C dist .' // Package frontend build
+                    nexusArtifactUploader artifacts: [[
+                        artifactId: 'frontend',               // Artifact ID for frontend
+                        classifier: '',
+                        file: "frontend-${BUILD_NUMBER}.tgz",
+                        type: 'tgz'
+                    ]],
+                    credentialsId: 'Nexus',                // Jenkins credential for Nexus access
+                    groupId: 'com.example.frontend',       // Group ID for frontend
+                    nexusUrl: "${NEXUS_URL}",               // Nexus server URL
+                    nexusVersion: 'nexus3',
+                    protocol: 'http',
+                    repository: 'frontend-repo',           // Repository for frontend package
+                    version: "${BUILD_NUMBER}"             // Use Jenkins build number as version
+                }
+            }
+        }
+
+    }
+}
+
         stage('Docker Build') {
             steps {
                 withCredentials([usernamePassword(
@@ -161,16 +160,15 @@ pipeline {
             }
         }
 
-        /* ---------------- DEPLOY ---------------- */
         stage('Deploy') {
             steps {
                 sh 'ansible-playbook -i ansible/inventory.ini ansible/deploy.yml'
             }
         }
-    }
 
-    /* ---------------- EMAIL ---------------- */
-    post {
+    }
+}
+   post {
         always {
             script {
                 def jobName = env.JOB_NAME
@@ -203,4 +201,3 @@ pipeline {
             }
         }
     }
-}
