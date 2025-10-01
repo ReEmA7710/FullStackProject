@@ -206,7 +206,7 @@ stage('Upload to Nexus') {
             emailext(
                 subject: "Jenkins Build: ${jobName} #${buildNumber} - ${pipelineStatusUpper}",
                 body: body,
-                to: 'alsubaiereema06@gmail.com',
+                to: 'reemar0o08@gmail.com',
                 from: 'jenkins@example.com',
                 replyTo: 'jenkins@example.com',
                 mimeType: 'text/html'
