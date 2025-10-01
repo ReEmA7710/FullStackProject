@@ -1,3 +1,4 @@
+---
 - name: Deploy FullStack Project on Kubernetes
   hosts: k8s_server
   become: true
@@ -26,13 +27,14 @@
         owner: ubuntu
         group: ubuntu
         mode: '0644'
+
     - name: Transfer MySQL PV Manifest
       copy:
-        src: "{{ repo_root }}/k8s/mysql-pvc.yaml"
+        src: "{{ repo_root }}/k8s/mysql-pv.yaml"
         dest: /home/ubuntu/mysql-pv.yaml
         owner: ubuntu
         group: ubuntu
-        mode: '0644
+        mode: '0644'
 
     - name: Transfer MySQL Deployment Manifest
       copy:
@@ -73,8 +75,8 @@
       command: kubectl apply -f /home/ubuntu/mysql-pv.yaml 
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
-        
-     - name: Apply MySQL PVC
+
+    - name: Apply MySQL PVC
       command: kubectl apply -f /home/ubuntu/mysql-pvc.yaml 
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
