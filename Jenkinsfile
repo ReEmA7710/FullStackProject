@@ -168,39 +168,56 @@ stage('Upload to Nexus') {
 
     }
 }
-   post {
-        always {
-            script {
-                def jobName = env.JOB_NAME
-                def buildNumber = env.BUILD_NUMBER
-                def pipelineStatus = currentBuild.currentResult
-                def pipelineStatusUpper = pipelineStatus.toUpperCase()
-                def bannerColor = pipelineStatusUpper == 'SUCCESS' ? 'green' : 'red'
+ post {
+    always {
+        script {
+            def jobName = env.JOB_NAME
+            def buildNumber = env.BUILD_NUMBER
+            def pipelineStatus = currentBuild.currentResult
+            def pipelineStatusUpper = pipelineStatus.toUpperCase()
+            def bannerColor = pipelineStatusUpper == 'SUCCESS' ? '#4CAF50' : '#F44336'
 
-                def body = """<html>
-                    <body>
-                        <div style="border: 4px solid ${bannerColor}; padding: 10px;">
-                            <h2>${jobName} - Build ${buildNumber}</h2>
-                            <div style="background-color: ${bannerColor}; padding: 10px;">
-                                <h3 style="color: white;">Pipeline Status: ${pipelineStatusUpper}</h3>
-                            </div>
-                            <p>Check the <a href="${env.BUILD_URL}">console output</a>.</p>
-                            <p style="font-size: 16px;">The build has finished with a <strong>${pipelineStatusUpper}</strong> status.</p>
+            def body = """<html>
+                <body style="font-family: Arial, sans-serif;">
+                    <h2 style="color: ${bannerColor};">🔔 Jenkins Pipeline Notification</h2>
+                    
+                    <table border="1" cellspacing="0" cellpadding="8" style="border-collapse: collapse; width: 70%;">
+                        <tr style="background-color: ${bannerColor}; color: white;">
+                            <th>Field</th>
+                            <th>Details</th>
+                        </tr>
+                        <tr>
+                            <td><b>Job Name</b></td>
+                            <td>${jobName}</td>
+                        </tr>
+                        <tr>
+                            <td><b>Build Number</b></td>
+                            <td>${buildNumber}</td>
+                        </tr>
+                        <tr>
+                            <td><b>Status</b></td>
+                            <td><b style="color: ${bannerColor};">${pipelineStatusUpper}</b></td>
+                        </tr>
+                        <tr>
+                            <td><b>Console Output</b></td>
+                            <td><a href="${env.BUILD_URL}">Click here</a></td>
+                        </tr>
+                    </table>
 
-                            
-                        </div>
-                    </body>
-                </html>"""
+                    <p style="margin-top: 15px; font-size: 14px;">
+                        ✅ This is an automated message from Jenkins.
+                    </p>
+                </body>
+            </html>"""
 
-                emailext (
-                    subject: "${jobName} - Build ${buildNumber} - ${pipelineStatusUpper}",
-                    body: body,
-                    to: 'reemar0o08@gmail.com',
-                    from: 'jenkins@example.com',
-                    replyTo: 'jenkins@example.com',
-                    mimeType: 'text/html'
-                )
-            }
+            emailext (
+                subject: "🔔 ${jobName} - Build #${buildNumber} - ${pipelineStatusUpper}",
+                body: body,
+                to: 'alsubaiereema06@gmail.com',
+                from: 'jenkins@example.com',
+                replyTo: 'jenkins@example.com',
+                mimeType: 'text/html'
+            )
         }
     }
 }
