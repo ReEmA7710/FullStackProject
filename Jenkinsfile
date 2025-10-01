@@ -168,39 +168,39 @@ stage('Upload to Nexus') {
 
     }
 }
- post {
-    always {
-        script {
-            def jobName = env.JOB_NAME
-            def buildNumber = env.BUILD_NUMBER
-            def pipelineStatus = currentBuild.currentResult.toUpperCase()
-            def buildTime = new Date().format("yyyy-MM-dd HH:mm:ss")
-            def bannerColor = pipelineStatus == 'SUCCESS' ? '#28a745' : '#dc3545'
-            def statusIcon = pipelineStatus == 'SUCCESS' ? "✅" : "❌"
+post {
+        always {
+            script {
+                def jobName = env.JOB_NAME
+                def buildNumber = env.BUILD_NUMBER
+                def pipelineStatus = currentBuild.currentResult
+                def pipelineStatusUpper = pipelineStatus.toUpperCase()
+                def bannerColor = pipelineStatusUpper == 'SUCCESS' ? 'green' : 'red'
 
-            def body = """
-            <html>
-                <body style="font-family: Arial, sans-serif; background-color:#f8f9fa; padding:20px;">
-                    <div style="max-width: 700px; margin:auto; border: 3px solid ${bannerColor}; padding: 20px; border-radius: 12px; background:white; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-                        <h2 style="margin-bottom:5px;">${jobName} - Build #${buildNumber}</h2>
-                        <div style="background-color: ${bannerColor}; padding: 12px; border-radius: 5px; margin-bottom:15px; text-align:center;">
-                            <h3 style="color: white; margin:0;">Pipeline Status: ${pipelineStatus} ${statusIcon}</h3>
+                def body = """<html>
+                    <body>
+                        <div style="border: 4px solid ${bannerColor}; padding: 10px;">
+                            <h2>${jobName} - Build ${buildNumber}</h2>
+                            <div style="background-color: ${bannerColor}; padding: 10px;">
+                                <h3 style="color: white;">Pipeline Status: ${pipelineStatusUpper}</h3>
+                            </div>
+                            <p>Check the <a href="${env.BUILD_URL}">console output</a>.</p>
+                            <p style="font-size: 16px;">The build has finished with a <strong>${pipelineStatusUpper}</strong> status.</p>
+
+                            
                         </div>
-                        <p style="font-size:14px;">Build Time: ${buildTime}</p>
-                        <p style="font-size:14px;">For more details, please <a href="${env.BUILD_URL}">view the Console Output</a>.</p>
-                    </div>
-                </body>
-            </html>
-            """
+                    </body>
+                </html>"""
 
-            emailext(
-                subject: "${jobName} - Build ${buildNumber} - ${pipelineStatus} ${statusIcon}",
-                body: body,
-                to: 'ralsubaiereema06@gmail.com',
-                from: 'jenkins@example.com',
-                replyTo: 'jenkins@example.com',
-                mimeType: 'text/html'
-            )
+                emailext (
+                    subject: "${jobName} - Build ${buildNumber} - ${pipelineStatusUpper}",
+                    body: body,
+                    to: 'alsubaiereema06@gmail.com',
+                    from: 'jenkins@example.com',
+                    replyTo: 'jenkins@example.com',
+                    mimeType: 'text/html'
+                )
+            }
         }
     }
 }
