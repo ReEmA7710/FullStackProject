@@ -172,24 +172,38 @@ pipeline {
         }
 
         /* ---------------- EMAIL ---------------- */
-        stage('Email Notification') {
-            steps {
-                script {
-                    emailext (
-                        to: "reemar0o08@gmail.com",
-                        subject: "[Jenkins] ${env.JOB_NAME} #${BUILD_NUMBER} → ${currentBuild.currentResult}",
-                        body: """
-                            <h2 style="color:#2F4F4F;">🚀 Jenkins Build Report</h2>
-                            <ul>
-                                <li><b>Job:</b> ${env.JOB_NAME}</li>
-                                <li><b>Build:</b> #${BUILD_NUMBER}</li>
-                                <li><b>Status:</b> <span style="color:${currentBuild.currentResult == 'SUCCESS' ? 'green' : 'red'}">${currentBuild.currentResult}</span></li>
-                                <li><b>URL:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></li>
-                            </ul>
-                        """,
-                        mimeType: 'text/html'
-                    )
-                }
+       post {
+        always {
+            script {
+                def jobName = env.JOB_NAME
+                def buildNumber = env.BUILD_NUMBER
+                def pipelineStatus = currentBuild.currentResult
+                def pipelineStatusUpper = pipelineStatus.toUpperCase()
+                def bannerColor = pipelineStatusUpper == 'SUCCESS' ? 'green' : 'red'
+
+                def body = """<html>
+                    <body>
+                        <div style="border: 4px solid ${bannerColor}; padding: 10px;">
+                            <h2>${jobName} - Build ${buildNumber}</h2>
+                            <div style="background-color: ${bannerColor}; padding: 10px;">
+                                <h3 style="color: white;">Pipeline Status: ${pipelineStatusUpper}</h3>
+                            </div>
+                            <p>Check the <a href="${env.BUILD_URL}">console output</a>.</p>
+                            <p style="font-size: 16px;">The build has finished with a <strong>${pipelineStatusUpper}</strong> status.</p>
+
+                            
+                        </div>
+                    </body>
+                </html>"""
+
+                emailext (
+                    subject: "${jobName} - Build ${buildNumber} - ${pipelineStatusUpper}",
+                    body: body,
+                    to: 'reemar0o08@gmail.com',
+                    from: 'jenkins@example.com',
+                    replyTo: 'jenkins@example.com',
+                    mimeType: 'text/html'
+                )
             }
         }
     }
