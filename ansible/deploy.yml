@@ -26,6 +26,13 @@
         owner: ubuntu
         group: ubuntu
         mode: '0644'
+    - name: Transfer MySQL PV Manifest
+      copy:
+        src: "{{ repo_root }}/k8s/mysql-pvc.yaml"
+        dest: /home/ubuntu/mysql-pv.yaml
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644
 
     - name: Transfer MySQL Deployment Manifest
       copy:
@@ -62,8 +69,13 @@
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Apply MySQL PVC
-      command: kubectl apply -f /home/ubuntu/mysql-pvc.yaml -n {{ ns }}
+    - name: Apply MySQL PV
+      command: kubectl apply -f /home/ubuntu/mysql-pv.yaml 
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+        
+     - name: Apply MySQL PVC
+      command: kubectl apply -f /home/ubuntu/mysql-pvc.yaml 
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
