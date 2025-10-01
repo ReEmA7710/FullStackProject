@@ -4,8 +4,9 @@ metadata:
   name: mysql-pv
   namespace: fullstack
 spec:
-accessModes: ["ReadWriteOnce"]
+  accessModes:
+    - ReadWriteOnce
   capacity:
-    storage: 1Gi   
+    storage: 1Gi
   hostPath:
     path: /tmp/data
