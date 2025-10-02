@@ -159,10 +159,3 @@
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-
-    # >>>>>>>>>>>>>>>>>>>   DEBUG   <<<<<<<<<<<<<<<<<<<<<<<
-    - name: Debug Rendered Images
-      debug:
-        msg:
-          - "backend => {{ backend_image }}"
-          - "frontend => {{ frontend_image }}"
