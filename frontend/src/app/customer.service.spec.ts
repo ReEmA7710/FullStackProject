@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing'; //ADD
 import { CustomerService } from './customer.service';
 
 describe('CustomerService', () => {
@@ -7,8 +7,8 @@ describe('CustomerService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [CustomerService]
+      imports: [HttpClientTestingModule], //ADD
+      providers: [CustomerService] //ADD
     });
     service = TestBed.inject(CustomerService);
   });
