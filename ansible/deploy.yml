@@ -12,7 +12,9 @@
     ns: "fullstack"    
 
   tasks:
-    - name: Transfer Namespace Manifest
+
+    # >>>>>>>>>>>>>>>>>   NAMESPACE   <<<<<<<<<<<<<<<<<<<<<
+    - name: Copy Namespace Manifest File   # Copy namespace.yaml to server
       copy:
         src: "{{ repo_root }}/k8s/namespace.yaml"
         dest: /home/ubuntu/namespace.yaml
@@ -20,7 +22,14 @@
         group: ubuntu
         mode: '0644'
 
-    - name: Transfer MySQL PVC Manifest
+    - name: Apply Namespace to Cluster   # Apply namespace file to Kubernetes
+      command: kubectl apply -f /home/ubuntu/namespace.yaml
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+
+
+    # >>>>>>>>>>>>>>>>>>>   MYSQL   <<<<<<<<<<<<<<<<<<<<<<<
+    - name: Copy MySQL PVC Manifest File   # Copy mysql-pvc.yaml to server
       copy:
         src: "{{ repo_root }}/k8s/mysql-pvc.yaml"
         dest: /home/ubuntu/mysql-pvc.yaml
@@ -28,7 +37,7 @@
         group: ubuntu
         mode: '0644'
 
-    - name: Transfer MySQL PV Manifest
+    - name: Copy MySQL PV Manifest File   # Copy mysql-pv.yaml to server
       copy:
         src: "{{ repo_root }}/k8s/mysql-pv.yaml"
         dest: /home/ubuntu/mysql-pv.yaml
@@ -36,7 +45,7 @@
         group: ubuntu
         mode: '0644'
 
-    - name: Transfer MySQL Deployment Manifest
+    - name: Copy MySQL Deployment Manifest File   # Copy mysql-deployment.yaml
       copy:
         src: "{{ repo_root }}/k8s/mysql-deployment.yaml"
         dest: /home/ubuntu/mysql-deployment.yaml
@@ -44,6 +53,28 @@
         group: ubuntu
         mode: '0644'
 
+    - name: Apply MySQL PV   # Apply mysql-pv.yaml
+      command: kubectl apply -f /home/ubuntu/mysql-pv.yaml 
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+
+    - name: Apply MySQL PVC   # Apply mysql-pvc.yaml
+      command: kubectl apply -f /home/ubuntu/mysql-pvc.yaml 
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+
+    - name: Delete Old MySQL Deployment   # Remove old MySQL if exists
+      command: kubectl -n {{ ns }} delete deployment mysql --ignore-not-found
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+
+    - name: Apply MySQL Deployment   # Deploy MySQL
+      command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml -n {{ ns }}
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+
+
+    # >>>>>>>>>>>>>>>>>>>   BACKEND   <<<<<<<<<<<<<<<<<<<<
     - name: Render Backend Deployment with Image Tag
       template:
         src: "{{ repo_root }}/k8s/Backend-Deployment.yaml"
@@ -52,46 +83,7 @@
         group: ubuntu
         mode: '0644'
 
-    - name: Render Frontend Deployment with Image Tag
-      template:
-        src: "{{ repo_root }}/k8s/Frontend-Deployment.yaml"
-        dest: /home/ubuntu/Frontend-Deployment.yaml
-        owner: ubuntu
-        group: ubuntu
-        mode: '0644'
-
-    - name: Debug Rendered Images
-      debug:
-        msg:
-          - "backend => {{ backend_image }}"
-          - "frontend => {{ frontend_image }}"
-
-    - name: Apply Namespace
-      command: kubectl apply -f /home/ubuntu/namespace.yaml
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
-
-    - name: Apply MySQL PV
-      command: kubectl apply -f /home/ubuntu/mysql-pv.yaml 
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
-
-    - name: Apply MySQL PVC
-      command: kubectl apply -f /home/ubuntu/mysql-pvc.yaml 
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
-
-    - name: Remove Old MySQL Deployment if Exists
-      command: kubectl -n {{ ns }} delete deployment mysql --ignore-not-found
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
-
-    - name: Apply MySQL Deployment
-      command: kubectl apply -f /home/ubuntu/mysql-deployment.yaml -n {{ ns }}
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
-
-    - name: Check Backend Deployment Existence
+    - name: Check Backend Deployment
       command: kubectl -n {{ ns }} get deployment backend-deployment
       register: be_check
       failed_when: false
@@ -99,7 +91,7 @@
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Remove Old Backend Deployment if Exists
+    - name: Delete Old Backend Deployment
       command: kubectl -n {{ ns }} delete deployment backend-deployment
       when: be_check.rc == 0
       environment:
@@ -110,7 +102,17 @@
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Check Frontend Deployment Existence
+
+    # >>>>>>>>>>>>>>>>>>>   FRONTEND   <<<<<<<<<<<<<<<<<<<
+    - name: Render Frontend Deployment with Image Tag
+      template:
+        src: "{{ repo_root }}/k8s/Frontend-Deployment.yaml"
+        dest: /home/ubuntu/Frontend-Deployment.yaml
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
+    - name: Check Frontend Deployment
       command: kubectl -n {{ ns }} get deployment frontend-deployment
       register: fe_check
       failed_when: false
@@ -118,7 +120,7 @@
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Remove Old Frontend Deployment if Exists
+    - name: Delete Old Frontend Deployment
       command: kubectl -n {{ ns }} delete deployment frontend-deployment
       when: fe_check.rc == 0
       environment:
@@ -129,7 +131,9 @@
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Transfer Frontend Ingress Manifest
+
+    # >>>>>>>>>>>>>>>>>>>   INGRESS   <<<<<<<<<<<<<<<<<<<<<
+    - name: Copy Frontend Ingress Manifest File
       copy:
         src: "{{ repo_root }}/k8s/ingress-frontend.yaml"
         dest: /home/ubuntu/ingress-frontend.yaml
@@ -142,7 +146,7 @@
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
 
-    - name: Transfer Backend Ingress Manifest
+    - name: Copy Backend Ingress Manifest File
       copy:
         src: "{{ repo_root }}/k8s/ingress-backend.yaml"
         dest: /home/ubuntu/ingress-backend.yaml
@@ -154,3 +158,11 @@
       command: kubectl apply -f /home/ubuntu/ingress-backend.yaml -n {{ ns }}
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
+
+
+    # >>>>>>>>>>>>>>>>>>>   DEBUG   <<<<<<<<<<<<<<<<<<<<<<<
+    - name: Debug Rendered Images
+      debug:
+        msg:
+          - "backend => {{ backend_image }}"
+          - "frontend => {{ frontend_image }}"
