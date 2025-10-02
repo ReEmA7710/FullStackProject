@@ -14,7 +14,7 @@ export interface Customer {
 
 export class CustomerService {
 
-  private apiUrl = '/customers';
+  private apiUrl = 'http://localhost:8080/customers';
 
   constructor(private http: HttpClient) {}
 
@@ -27,10 +27,10 @@ export class CustomerService {
   }
 
   updateCustomer(customer: Customer): Observable<Customer> {
-    return this.http.put<Customer>(${this.apiUrl}/${customer.id}, customer);
+    return this.http.put<Customer>(`${this.apiUrl}/${customer.id}`, customer);
   }
 
   deleteCustomer(id: number): Observable<void> {
-    return this.http.delete<void>(${this.apiUrl}/${id});
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }
