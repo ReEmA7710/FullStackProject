@@ -32,7 +32,7 @@ pipeline {
                     }
                 }
                 stage('Backend Build & Test') {
-                    environment { SPRING_PROFILES_ACTIVE = 'ci-testing' }
+                    environment { SPRING_PROFILES_ACTIVE = 'test-no-db' }
                     steps {
                         dir('backend') {
                             sh '''
