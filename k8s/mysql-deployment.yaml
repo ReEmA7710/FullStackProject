@@ -30,7 +30,7 @@ spec:
       volumes:
         - name: mysql-storage
           persistentVolumeClaim:
-            claimName: new-pvc
+            claimName: mysql-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -43,3 +43,4 @@ spec:
   ports:
     - port: 3306
       targetPort: 3306
+
