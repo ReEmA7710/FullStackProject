@@ -8,7 +8,7 @@ import { Customer, CustomerService } from './customer.service';
 })
 export class AppComponent {
   title = 'frontend';
-  darkMode = false;
+
   customers: Customer[] = [];
   newCustomer: Customer = { name: '', email: '' };
 
@@ -23,7 +23,6 @@ export class AppComponent {
   }
 
   addCustomer(): void {
-    if (!this.newCustomer.name || !this.newCustomer.email) return;
     this.customerService.addCustomer(this.newCustomer).subscribe(() => {
       this.loadCustomers();
       this.newCustomer = { name: '', email: '' };
@@ -34,10 +33,5 @@ export class AppComponent {
     if (id) {
       this.customerService.deleteCustomer(id).subscribe(() => this.loadCustomers());
     }
-  }
-
-  toggleDarkMode(): void {
-    this.darkMode = !this.darkMode;
-    document.body.classList.toggle('dark-mode', this.darkMode);
   }
 }
