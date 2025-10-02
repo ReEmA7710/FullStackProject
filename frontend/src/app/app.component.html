@@ -1,33 +1,11 @@
-<!-- Navbar -->
-<div class="navbar">
-  <span class="navbar-brand">Customer Dashboard</span>
-</div>
+<h2>Customer List</h2>
+<input [(ngModel)]="newCustomer.name" placeholder="Name">
+<input [(ngModel)]="newCustomer.email" placeholder="Email">
+<button (click)="addCustomer()">Add</button>
 
-<!-- Main Container -->
-<div class="container">
-  <h2 class="section-title">Customer List</h2>
-
-  <!-- Add Customer Form -->
-  <div class="add-customer">
-    <div class="form-container">
-      <label for="name">Name</label>
-      <input id="name" [(ngModel)]="newCustomer.name" placeholder="Enter name">
-
-      <label for="email">Email</label>
-      <input id="email" [(ngModel)]="newCustomer.email" placeholder="Enter email">
-
-      <button class="add-customer-btn" (click)="addCustomer()">Add Customer</button>
-    </div>
-  </div>
-
-  <!-- Customer Cards -->
-  <div class="customer-list">
-    <div *ngFor="let customer of customers">
-      <div class="customer-card">
-        <h3>{{ customer.name }}</h3>
-        <p>{{ customer.email }}</p>
-        <button class="delete-btn" (click)="deleteCustomer(customer.id)">Delete</button>
-      </div>
-    </div>
-  </div>
-</div>
+<ul>
+  <li *ngFor="let customer of customers">
+    {{ customer.name }} - {{ customer.email }}
+    <button (click)="deleteCustomer(customer.id)">Delete</button>
+  </li>
+</ul>
