@@ -24,6 +24,13 @@ spec:
               value: root
             - name: MYSQL_DATABASE
               value: mydb
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: new-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -36,5 +43,3 @@ spec:
   ports:
     - port: 3306
       targetPort: 3306
-
-
