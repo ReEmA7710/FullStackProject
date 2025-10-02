@@ -1,11 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
-//ADD
 import { FormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CustomerService, Customer } from './customer.service';
 import { of } from 'rxjs';
-//ADD
+
 describe('AppComponent', () => {
   const customerServiceMock = {
     getCustomers: () => of([] as Customer[]),
@@ -16,8 +15,8 @@ describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [AppComponent],
-      imports: [FormsModule, HttpClientTestingModule], //ADD
-      providers: [{ provide: CustomerService, useValue: customerServiceMock }] //ADD
+      imports: [FormsModule, HttpClientTestingModule],
+      providers: [{ provide: CustomerService, useValue: customerServiceMock }]
     }).compileComponents();
   });
 
@@ -26,7 +25,7 @@ describe('AppComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should have title "frontend"', () => {
+  it(should have title 'frontend', () => {
     const fixture = TestBed.createComponent(AppComponent);
     expect(fixture.componentInstance.title).toEqual('frontend');
   });
