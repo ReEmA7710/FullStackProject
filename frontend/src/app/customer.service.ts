@@ -8,13 +8,10 @@ export interface Customer {
   email: string;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
-
+@Injectable({ providedIn: 'root' })
 export class CustomerService {
 
-  private apiUrl = '/customers'; //matching frontend & backend 
+  private apiUrl = '/customers';
 
   constructor(private http: HttpClient) {}
 
@@ -27,10 +24,10 @@ export class CustomerService {
   }
 
   updateCustomer(customer: Customer): Observable<Customer> {
-    return this.http.put<Customer>(`${this.apiUrl}/${customer.id}`, customer);
+    return this.http.put<Customer>(${this.apiUrl}/${customer.id}, customer);
   }
 
   deleteCustomer(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<void>(${this.apiUrl}/${id});
   }
 }
