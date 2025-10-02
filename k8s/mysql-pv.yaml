@@ -8,4 +8,4 @@ spec:
   capacity:
     storage: 1Gi
   hostPath:
-    path: /tmp/data
+    path: /tmp/data/mysql
