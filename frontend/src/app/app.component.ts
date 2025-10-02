@@ -1,16 +1,15 @@
-import { Component } from '@angular/core';
-import { Customer, CustomerService } from './customer.service';
-
-@Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
-})
 export class AppComponent {
   title = 'frontend';
 
   customers: Customer[] = [];
   newCustomer: Customer = { name: '', email: '' };
+
+  // ===== Dark mode =====
+  darkMode = false;
+  toggleDarkMode() {
+    this.darkMode = !this.darkMode;
+  }
+  // =====================
 
   constructor(private customerService: CustomerService) {}
 
