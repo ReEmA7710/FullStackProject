@@ -73,8 +73,8 @@ pipeline {
                                 dir('frontend') {
                                     sh """
                                         ${scannerHome}/bin/sonar-scanner \
-                                          -Dsonar.projectKey=frontend-app \
-                                          -Dsonar.projectName=frontend-app \
+                                          -Dsonar.projectKey=frontend-project \
+                                          -Dsonar.projectName=frontend-projectp \
                                           -Dsonar.sources=. \
                                           -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
                                     """
